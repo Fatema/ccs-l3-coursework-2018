@@ -2,7 +2,7 @@ CFLAGS = -O3 -march=native  -D_GNU_SOURCE
 LDFLAGS = -lm
 CC = gcc
 
-OBJ = optimised-sparsemm.o basic-sparsemm.o utils.o test.o
+OBJ = optimised-sparsemm.o basic-sparsemm.o utils.o
 HEADER = utils.h
 
 .PHONY: clean help check
@@ -25,4 +25,4 @@ sparsemm: sparsemm.c $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDFLAGS)
 
 %.o: %.c $(HEADER)
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
