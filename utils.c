@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include "utils.h"
 
+// taken from https://stackoverflow.com/questions/37538/how-do-i-determine-the-size-of-my-array-in-c 
+#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
 
 #ifdef _MSC_VER
 double drand48()
@@ -181,6 +183,79 @@ void convert_dense_to_sparse(const double *dense, int m, int n,
         }
     }
     *sparse = sp;
+}
+
+
+/*
+ * Convert csr format to coo format - this loses the information about the total number of columns.
+ *
+ * csr - sparse matrix
+ * m - number of rows
+ * n - number of columns
+ * sparse - output sparse matrix (allocated by this routine)
+ */
+void convert_csr_to_coo(const CSR csr, COO *coo) {
+    COO sp;
+    int m, NZ, i, n, r, nrow, row;
+
+    m = NELEMS(csr->IA) - 1;
+    NZ = NELEMS(csr->A);
+
+    // column numbers is lost in this case
+    alloc_sparse(m, m, NZ, sp);
+
+    // cannot be vectorized
+    for(i = 0; i < m; i++){
+        nrow = csr->IA[i + 1] - csr->IA[i];
+        row = csr->IA[i];
+        for(r = 0; r < nrow; r++){
+            sp->coords[row + r].i = i;
+            sp->coords[row + r].j = csr->JA[row + r];
+            sp->data[row + r] = csr->A[row + r];
+        }
+    }
+
+    *coo = sp;
+}
+
+/** 
+ * this code is taken from http://crd-legacy.lbl.gov/~yunhe/cs267/final/source/utils/convert/matrix_io.c 
+*/
+void convert_coo_to_csr(const COO coo, CSR *csr) {
+    int m, n, NZ, i, l;
+    CSR sp;
+
+    m = coo->m;
+    n = coo->n;
+    NZ = coo->NZ;
+
+    alloc_sparse_csr(m + 1, NZ, csr);
+
+    // determine the row lengths (the first row is always 0)
+    for(i = 0; i < NZ; i++){
+        sp->IA[coo->coords[i].i + 1]++;
+    }
+
+    for (i = 0; i < m; i++) {
+        sp->IA[i + 1] += sp->IA[i];
+    }
+
+     /* go through the structure  once more. Fill in output matrix. */
+    for (l = 0; l < NZ; l++){
+        i = sp->IA[coo->coords[l].i];
+        sp->A[i] = coo->data[l];
+        sp->JA[i] = coo->coords[l].j;
+        sp->IA[coo->coords[l].i]++;
+    }
+
+    /* shift back row_start */
+    for (i = n; i > 0; i--){
+        sp->IA[i] = sp->IA[i - 1];
+    }
+
+    sp->IA[0] = 0;
+
+    *csr = sp;
 }
 
 

@@ -1,8 +1,6 @@
 #include "utils.h"
 #include <stdlib.h>
 
-// taken from https://stackoverflow.com/questions/37538/how-do-i-determine-the-size-of-my-array-in-c 
-#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
 void coo_sum_duplicates(const COO coo, COO *nodups);
 void transpose_coo(const COO coo, COO *transposed);
 void basic_sparsemm(const COO, const COO, COO *);
@@ -69,6 +67,7 @@ void optimised_sparsemm_sum(const COO A, const COO B, const COO C,
                             const COO D, const COO E, const COO F,
                             COO *O)
 {
+    
     return basic_sparsemm_sum(A, B, C, D, E, F, O);
 }
 

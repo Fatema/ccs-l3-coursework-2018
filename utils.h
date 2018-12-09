@@ -37,11 +37,7 @@ void convert_sparse_to_dense(const COO, double **);
 void convert_dense_to_sparse(const double *, int, int, COO *);
 
 void convert_coo_to_csr(const COO, CSR *);
-void convert_csr_to_coo(const COO, CSR *);
-
-void sort_coo_by_row(const COO, COO *);
-
-void transpose_coo(const COO, COO *);
+void convert_csr_to_coo(const CSR, COO *);
 
 void read_sparse(const char *, COO *);
 void write_sparse(FILE *, COO);
