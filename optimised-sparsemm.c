@@ -87,6 +87,7 @@ void transpose_coo(const COO coo, COO *transposed)
     // set m to number of columns
     int m = coo->n;
     int NZ = coo->NZ;
+    int i;
 
     COO sp;
 
@@ -94,12 +95,12 @@ void transpose_coo(const COO coo, COO *transposed)
 
     // count number of elements in each column
     int count[m];
-    for(int i = 0; i < m; i++){
+    for(i = 0; i < m; i++){
         count[i] = 0;
     }
 
     // this is easily parallized 
-    for(int i = 0; i < NZ; i++){
+    for(i = 0; i < NZ; i++){
         count[coo->coords[i].j]++;
     }
 
@@ -112,14 +113,14 @@ void transpose_coo(const COO coo, COO *transposed)
 
     // initialize rest of the indices
     // can be done with Parallel Prefix Sum
-    for(int i = 1; i < m; i++){
+    for(i = 1; i < m; i++){
         index[i] = index[i - 1] + count[i - 1];
     }
     
     int rpos;
 
     // this one cannot be easily parallized 
-    for (int i = 0; i < NZ; i++){
+    for (i = 0; i < NZ; i++){
         rpos = index[coo->coords[i].j];
         sp->coords[rpos].i = coo->coords[i].j;
         sp->coords[rpos].j = coo->coords[i].i;
