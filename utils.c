@@ -89,6 +89,39 @@ void free_sparse(COO *sparse)
 }
 
 /*
+ * Allocate a sparse matrix in compressed sparse row format.
+ * m - number of rows
+ * NZ - number of nonzeros
+ * sparse - newly allocated matrix.
+ */
+void alloc_sparse_csr(int m, int NZ, CSR *sparse)
+{
+    CSR sp = calloc(1, sizeof(struct _p_CSR));
+    // size of IA is m + 1 to guarantee the formula IA[i + 1] − IA[i] works for any row i 
+    sp->IA = calloc(m + 1, sizeof(int));
+    sp->JA = calloc(NZ, sizeof(int));
+    sp->A = calloc(NZ, sizeof(double));
+    *sparse = sp;
+}
+
+/*
+ * Free a csr sparse matrix.
+ * sparse - sparse matrix, may be NULL
+ */
+void free_sparse_csr(CSR *sparse)
+{
+    CSR sp = *sparse;
+    if (!sp) {
+        return;
+    }
+    free(sp->IA);
+    free(sp->JA);
+    free(sp->A);
+    free(sp);
+    *sparse = NULL;
+}
+
+/*
  * Convert a sparse matrix to dense format in column major format.
  *
  * sparse - The sparse matrix to convert
@@ -149,6 +182,137 @@ void convert_dense_to_sparse(const double *dense, int m, int n,
     }
     *sparse = sp;
 }
+
+/*
+ * Convert coo to csr format.
+ *
+ * coo - The coo matrix to convert
+ * csr - pointer to output csr matrix (will be allocated)
+ */
+// void convert_coo_to_csr(const COO coo, CSR *csr)
+// {
+//     int m;
+//     CSR sp;
+
+//     alloc_sparse_csr(coo->m, coo->NZ, csr);
+//     for (n = 0; n < coo->NZ; n++) {
+//         i = coo->coords[n].i;
+//         j = coo->coords[n].j;
+//         (*csr)[j * coo->m + i] = coo->data[n];
+//     }
+// }
+
+// A utility function to swap two elements 
+void swap_coord ( coord* a, coord* b ) 
+{ 
+    coord t = *a; 
+    *a = *b; 
+    *b = t; 
+} 
+
+void swap ( int* a, int* b ) 
+{ 
+    int t = *a; 
+    *a = *b; 
+    *b = t; 
+} 
+
+/* This function is same in both iterative and recursive*/
+// For COO we deal with two arrays so both those arrays will be passed to this function
+int partition (COO coo, int low, int high) 
+{ 
+    int x = coo->coords[high].i; 
+    int i = (low - 1); 
+  
+    for (int j = low; j <= high- 1; j++) 
+    { 
+        if (coo->coords[i].i <= x) 
+        { 
+            i++; 
+            swap_coord (&coo->coords[i], &coo->coords[j]); 
+            swap (&coo->data[i], &coo->data[j]); 
+        } 
+    } 
+    swap_coord (&coo->coords[i + 1], &coo->coords[high]); 
+    swap (&coo->data[i + 1], &coo->data[high]); 
+    return (i + 1); 
+} 
+
+
+void quickSort(COO coo, int low, int high) 
+{ 
+    if (low < high) 
+    {      
+        /* Partitioning index */
+        int p = partition(coo, low, high);  
+        quickSort(coo, low, p - 1);  
+        quickSort(coo, p + 1, high); 
+    }   
+} 
+
+
+void sort_coo_by_row(const COO coo, COO *sorted){
+    quickSort(coo, 0, coo->NZ - 1);
+    *sorted = coo;
+}
+
+/*
+ * Transpose a coo format sparse matrix
+ * This is based on https://www.geeksforgeeks.org/operations-sparse-matrices/ 
+ *
+ * coo - sparse matrix
+ * transposed - output transposed coo format sparse matrix (allocated by this routine)
+ */
+void transpose_coo(const COO coo, COO *transposed)
+{
+    // set n to number of rows
+    int n = coo->m;
+    // set m to number of columns
+    int m = coo->n;
+    int NZ = coo->NZ;
+
+    COO sp;
+
+    alloc_sparse(m, n, NZ, &sp);
+
+    // count number of elements in each column
+    int count[m];
+    for(int i = 0; i < m; i++){
+        count[i] = 0;
+    }
+
+    for(int i = 0; i < NZ; i++){
+        count[coo->coords[i].j]++;
+    }
+
+    // to count number of elements having col smaller 
+    // than particular i 
+    int index[m];
+
+    // as there is no col with value < 1 
+    index[0] = 0;
+
+    // initialize rest of the indices
+    for(int i = 1; i < m; i++){
+        index[i] = index[i - 1] + count[i - 1];
+    }
+    
+    int rpos;
+
+    for (int i = 0; i < NZ; i++){
+        rpos = index[coo->coords[i].j];
+        sp->coords[rpos].i = coo->coords[i].j;
+        sp->coords[rpos].j = coo->coords[i].i;
+        sp->data[rpos] = coo->data[i];
+        index[coo->coords[i].j]++;
+    }
+    
+    // the above method ensures 
+    // sorting of transpose matrix 
+    // according to row-col value
+    *transposed = sp;
+}
+
 
 /*
  * Create a random sparse matrix
