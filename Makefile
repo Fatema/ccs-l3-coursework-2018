@@ -2,6 +2,10 @@ CFLAGS = -O3 -march=native  -D_GNU_SOURCE
 LDFLAGS = -lm
 CC = gcc
 
+GPROF= -pg
+
+LIKWID = -mfma -DLIKWID_PERFMON -I$LIKWID_PATH/include -L$LIKWID_PATH/lib -llikwid -lpthread -lm
+
 OBJ = optimised-sparsemm.o basic-sparsemm.o utils.o
 HEADER = utils.h
 
@@ -29,3 +33,9 @@ test: test.c $(OBJ)
 
 %.o: %.c $(HEADER)
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+performance: sparsemm.c $(OBJ)
+	$(CC) $(CFLAGS) -o sparsemm $< $(OBJ) $(LDFLAGS) $(LIKWID)
+
+gprof: sparsemm.c $(OBJ)
+	$(CC) $(CFLAGS) -o sparsemm $< $(OBJ) $(LDFLAGS) $(GPROF)

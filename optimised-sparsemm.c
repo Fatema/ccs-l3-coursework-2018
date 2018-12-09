@@ -50,6 +50,7 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
     res->coords = realloc(res->coords, cpos * sizeof(struct coord));
     res->data = realloc(res->data, cpos * sizeof(double));
 
+    // the removing of duplicates can be done in merge sort style
     // sort the result
     transpose_coo(res, &Tres);
     transpose_coo(Tres, &res);
@@ -71,10 +72,6 @@ void optimised_sparsemm_sum(const COO A, const COO B, const COO C,
     return basic_sparsemm_sum(A, B, C, D, E, F, O);
 }
 
-// http://delivery.acm.org/10.1145/360000/355796/p250-gustavson.pdf?ip=129.234.0.23&id=355796&acc=ACTIVE%20SERVICE&key=BF07A2EE685417C5%2EAB9A2A9F43EF7438%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35&__acm__=1544294337_058d03490eaa8bf2d29373ed515d88b5 
-// transpose algo for CSR p8
-// Algorithm to rezero Boolean array xb p11
-// multiplication algo p13
 
 /*
  * Transpose a coo format sparse matrix
@@ -166,3 +163,8 @@ void coo_sum_duplicates(const COO coo, COO *nodups){
 
     *nodups = sp;
 }
+
+// http://delivery.acm.org/10.1145/360000/355796/p250-gustavson.pdf?ip=129.234.0.23&id=355796&acc=ACTIVE%20SERVICE&key=BF07A2EE685417C5%2EAB9A2A9F43EF7438%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35&__acm__=1544294337_058d03490eaa8bf2d29373ed515d88b5 
+// transpose algo for CSR p8
+// Algorithm to rezero Boolean array xb p11
+// multiplication algo p13

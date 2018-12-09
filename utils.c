@@ -202,7 +202,7 @@ void convert_csr_to_coo(const CSR csr, COO *coo) {
     NZ = NELEMS(csr->A);
 
     // column numbers is lost in this case
-    alloc_sparse(m, m, NZ, sp);
+    alloc_sparse(m, m, NZ, &sp);
 
     // cannot be vectorized
     for(i = 0; i < m; i++){
@@ -229,7 +229,7 @@ void convert_coo_to_csr(const COO coo, CSR *csr) {
     n = coo->n;
     NZ = coo->NZ;
 
-    alloc_sparse_csr(m + 1, NZ, csr);
+    alloc_sparse_csr(m + 1, NZ, &sp);
 
     // determine the row lengths (the first row is always 0)
     for(i = 0; i < NZ; i++){
