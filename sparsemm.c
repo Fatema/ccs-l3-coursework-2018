@@ -28,7 +28,7 @@ static int check_sparsemm()
     random_matrix(k, n, 0.2, &B);
 
     basic_sparsemm(A, B, &Cbasic);
-    optimised_sparsemm(A, B, &Copt);
+    optimised_sparsemm(A, B, &Copt);  
 
     convert_sparse_to_dense(Cbasic, &basic);
     convert_sparse_to_dense(Copt, &opt);

@@ -20,6 +20,7 @@ int main(int argc, char **argv)
 
     print_sparse(A);
     print_sparse(AT);
+    print_sparse(B);
 
     free_sparse(&A);
     free_sparse(&B);

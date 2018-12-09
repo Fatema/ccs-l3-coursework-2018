@@ -185,64 +185,6 @@ void convert_dense_to_sparse(const double *dense, int m, int n,
 
 
 /*
- * Transpose a coo format sparse matrix
- * This is based on https://www.geeksforgeeks.org/operations-sparse-matrices/ 
- *
- * coo - sparse matrix
- * transposed - output transposed coo format sparse matrix (allocated by this routine)
- */
-void transpose_coo(const COO coo, COO *transposed)
-{
-    // set n to number of rows
-    int n = coo->m;
-    // set m to number of columns
-    int m = coo->n;
-    int NZ = coo->NZ;
-
-    COO sp;
-
-    alloc_sparse(m, n, NZ, &sp);
-
-    // count number of elements in each column
-    int count[m];
-    for(int i = 0; i < m; i++){
-        count[i] = 0;
-    }
-
-    for(int i = 0; i < NZ; i++){
-        count[coo->coords[i].j]++;
-    }
-
-    // to count number of elements having col smaller 
-    // than particular i 
-    int index[m];
-
-    // as there is no col with value < 1 
-    index[0] = 0;
-
-    // initialize rest of the indices
-    for(int i = 1; i < m; i++){
-        index[i] = index[i - 1] + count[i - 1];
-    }
-    
-    int rpos;
-
-    for (int i = 0; i < NZ; i++){
-        rpos = index[coo->coords[i].j];
-        sp->coords[rpos].i = coo->coords[i].j;
-        sp->coords[rpos].j = coo->coords[i].i;
-        sp->data[rpos] = coo->data[i];
-        index[coo->coords[i].j]++;
-    }
-    
-    // the above method ensures 
-    // sorting of transpose matrix 
-    // according to row-col value
-    *transposed = sp;
-}
-
-
-/*
  * Create a random sparse matrix
  *
  * m - number of rows
