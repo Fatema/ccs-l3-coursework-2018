@@ -7,20 +7,22 @@
 
 int main(int argc, char **argv)
 {
-    COO A, AT;
+    COO A, AT, B;
     int m, k;
     int pass = 0;
 
-    m = 20;
-    k = 50;
+    m = 5;
+    k = 5;
 
     random_matrix(m, k, 0.1, &A);
-    transpose_coo(A, &AT);
+    random_matrix(m, k, 0.3, &B);
+    transpose_coo(B, &AT);
 
     print_sparse(A);
     print_sparse(AT);
 
     free_sparse(&A);
+    free_sparse(&B);
     free_sparse(&AT);
 
     return pass;

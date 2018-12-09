@@ -1,4 +1,8 @@
 #include "utils.h"
+#include <stdlib.h>
+
+// taken from https://stackoverflow.com/questions/37538/how-do-i-determine-the-size-of-my-array-in-c 
+#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
 
 void basic_sparsemm(const COO, const COO, COO *);
 void basic_sparsemm_sum(const COO, const COO, const COO,
@@ -10,6 +14,55 @@ void basic_sparsemm_sum(const COO, const COO, const COO,
  */
 void optimised_sparsemm(const COO A, const COO B, COO *C)
 {
+    COO BT, res, Tres;
+    int apos, btpos, cpos, 
+    ANZ, BTNZ, arow, acol, btrow, btcol;
+    double adata, btdata;
+
+    ANZ = A->NZ;
+    BTNZ = B->NZ;
+
+    print_sparse(A);
+    print_sparse(B);
+
+    // bound to the multiplication matrixx https://www.degruyter.com/downloadpdf/j/comp.2014.4.issue-1/s13537-014-0201-x/s13537-014-0201-x.pdf
+    alloc_sparse(A->m, B->n, ANZ * BTNZ, &res);
+
+    // set method to intialize res.data to zeros
+    transpose_coo(B, &BT);
+
+    cpos = 0;
+
+    for(apos = 0; apos < ANZ; apos++) {
+        arow = A->coords[apos].i;
+        acol = A->coords[apos].j;
+        adata = A->data[apos];
+        for(btpos = 0; btpos < BTNZ; btpos++) {
+            btrow = BT->coords[btpos].i;
+            btcol = BT->coords[btpos].j;
+            btdata = BT->data[btpos];
+            // transpose is not really needed for this case
+            if (acol == btcol) {
+                res->coords[cpos].i = arow;
+                res->coords[cpos].j = btrow;
+                res->data[cpos] =  adata * btdata;
+                cpos++;
+            }
+        }
+    }
+
+    res->NZ = cpos;
+    res->coords = realloc(res->coords, cpos * sizeof(struct coord));
+    res->data = realloc(res->data, cpos * sizeof(double));
+
+    transpose_coo(res, &Tres);
+    print_sparse(res);
+    print_sparse(Tres);
+
+    free_sparse(&res);
+    free_sparse(&BT);
+    free_sparse(&Tres);
+
     return basic_sparsemm(A, B, C);
 }
 

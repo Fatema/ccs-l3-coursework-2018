@@ -16,12 +16,15 @@ help:
 	@echo "  sparsemm: Build the sparse matrix-matrix multiplication binary"
 
 clean:
-	-rm -f sparsemm $(OBJ)
+	-rm -f sparsemm test $(OBJ)
 
 check: sparsemm
 	./sparsemm CHECK
 
 sparsemm: sparsemm.c $(OBJ)
+	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDFLAGS)
+
+test: test.c $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDFLAGS)
 
 %.o: %.c $(HEADER)
