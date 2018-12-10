@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <stdlib.h>
+#include <openacc.h>
 
 void coo_sum_duplicates(const COO coo, COO *nodups);
 void transpose_coo(const COO coo, COO *transposed);
