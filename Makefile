@@ -1,4 +1,4 @@
-CFLAGS = -O3 -march=native  -D_GNU_SOURCE -pg
+CFLAGS = -O3 -march=native  -D_GNU_SOURCE -pg -ftree-vectorize
 LDFLAGS = -lm
 CC = gcc
 
