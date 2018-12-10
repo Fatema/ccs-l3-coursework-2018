@@ -6,6 +6,8 @@ GPROF = -pg
 
 LIKWID = -mfma -DLIKWID_PERFMON -I$LIKWID_PATH/include -L$LIKWID_PATH/lib -llikwid -lpthread -lm
 
+ACC = pgcc -acc -Minfo
+
 OBJ = optimised-sparsemm.o basic-sparsemm.o utils.o
 HEADER = utils.h
 
@@ -28,8 +30,11 @@ check: sparsemm
 sparsemm: sparsemm.c $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDFLAGS)
 
+# test: test.c $(OBJ)
+# 	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDFLAGS)
+
 test: test.c $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDFLAGS)
+	$(ACC) -o $@ $< $(OBJ) $(LDFLAGS)
 
 %.o: %.c $(HEADER)
 	$(CC) $(CFLAGS) -c -o $@ $<

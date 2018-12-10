@@ -29,20 +29,25 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
     cpos = 0;
 
     // with this approach sorting A and B is not really necessary, neither is transposing B 
-    for(apos = 0; apos < ANZ; apos++) {
-        arow = A->coords[apos].i;
-        acol = A->coords[apos].j;
-        adata = A->data[apos];
-        for(bpos = 0; bpos < BNZ; bpos++) {
-            brow = B->coords[bpos].j;
-            bcol = B->coords[bpos].i;
-            bdata = B->data[bpos];
-            // transpose is not really needed for this case
-            if (acol == bcol) {
-                res->coords[cpos].i = arow;
-                res->coords[cpos].j = brow;
-                res->data[cpos] =  adata * bdata;
-                cpos++; // I can use this to keep track if I'm about to run out of allocated memory
+    #pragma acc parallel loop {
+        for(apos = 0; apos < ANZ; apos++) {
+            arow = A->coords[apos].i;
+            acol = A->coords[apos].j;
+            adata = A->data[apos];
+            for(bpos = 0; bpos < BNZ; bpos++) {
+                brow = B->coords[bpos].j;
+                bcol = B->coords[bpos].i;
+                bdata = B->data[bpos];
+                // transpose is not really needed for this case
+                if (acol == bcol) {
+                    res->coords[cpos].i = arow;
+                    res->coords[cpos].j = brow;
+                    res->data[cpos] =  adata * bdata;
+                    #pragma acc atomic
+                    {
+                        cpos++; // I can use this to keep track if I'm about to run out of allocated memory
+                    }
+                }
             }
         }
     }
