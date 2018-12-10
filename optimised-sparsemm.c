@@ -41,7 +41,7 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
                 res->coords[cpos].i = arow;
                 res->coords[cpos].j = brow;
                 res->data[cpos] =  adata * bdata;
-                cpos++;
+                cpos++; // I can use this to keep track if I'm about to run out of allocated memory
             }
         }
     }
