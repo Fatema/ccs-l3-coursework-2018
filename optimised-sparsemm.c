@@ -3,6 +3,7 @@
 
 void coo_sum_duplicates(const COO coo, COO *nodups);
 void transpose_coo(const COO coo, COO *transposed);
+void transpose_csr(const CSR csr, CSR *transposed);
 void basic_sparsemm(const COO, const COO, COO *);
 void basic_sparsemm_sum(const COO, const COO, const COO,
                         const COO, const COO, const COO,
@@ -99,7 +100,6 @@ void transpose_coo(const COO coo, COO *transposed)
         count[i] = 0;
     }
 
-    // this is easily parallized 
     for(i = 0; i < NZ; i++){
         count[coo->coords[i].j]++;
     }
@@ -169,3 +169,45 @@ void coo_sum_duplicates(const COO coo, COO *nodups){
 // transpose algo for CSR p8
 // Algorithm to rezero Boolean array xb p11
 // multiplication algo p13
+
+void transpose_csr(const CSR csr, CSR *transposed){
+    int i, j, ir, m, n, NZ, nir, jpt, jp, q;
+    CSR csrt;
+
+    m = csr->m; // in csr the number of rows is + 1
+    n = csr->n;
+    NZ = csr->NZ;
+
+    alloc_sparse_csr(n, m, NZ, &csrt);
+
+    // count the number of columns (rows for the transposed csr)
+    for(i = 0; i < NZ; i++){
+        csrt->IA[csr->JA[i] + 1]++;
+    }
+
+    // set a pointer for the cumulative sum of the rows index
+    // this is used to shift the cumulative sum of the transposed row index
+    int p[n];
+    q = 0;
+    for (i = 0; i < n + 1; i++) {
+        p[i] = q;
+        q += csrt->IA[i];
+        csrt->IA[i] = p[i];
+    }
+
+    for(i = 0; i < m + 1; i++){
+        ir = csr->IA[i];
+        nir = csr->IA[i + 1];
+        for(jp = ir; jp < nir; jp++){
+            j = csr->JA[jp];
+            jpt = csrt->IA[j + 1];
+            csrt->JA[jpt] = i;
+            csrt->A[jpt] = csr->A[jp];
+            csrt->IA[j + 1] = jpt + 1;
+        }
+    }
+
+    csrt->IA[0] = 0;
+
+    *transposed = csrt;
+}

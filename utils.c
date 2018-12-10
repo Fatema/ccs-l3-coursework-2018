@@ -96,13 +96,16 @@ void free_sparse(COO *sparse)
  * NZ - number of nonzeros
  * sparse - newly allocated matrix.
  */
-void alloc_sparse_csr(int m, int NZ, CSR *sparse)
+void alloc_sparse_csr(int m, int n, int NZ, CSR *sparse)
 {
     CSR sp = calloc(1, sizeof(struct _p_CSR));
     // size of IA is m + 1 to guarantee the formula IA[i + 1] − IA[i] works for any row i 
     sp->IA = calloc(m + 1, sizeof(int));
     sp->JA = calloc(NZ, sizeof(int));
     sp->A = calloc(NZ, sizeof(double));
+    sp->m = m;
+    sp->n = n;
+    sp->NZ = NZ;
     *sparse = sp;
 }
 
@@ -198,11 +201,12 @@ void convert_csr_to_coo(const CSR csr, COO *coo) {
     COO sp;
     int m, NZ, i, n, r, nrow, row;
 
-    m = NELEMS(csr->IA) - 1;
-    NZ = NELEMS(csr->A);
+    m = csr->m;
+    n = csr->n;
+    NZ = csr->NZ;
 
     // column numbers is lost in this case
-    alloc_sparse(m, m, NZ, &sp);
+    alloc_sparse(m, n, NZ, &sp);
 
     // cannot be vectorized
     for(i = 0; i < m; i++){
@@ -229,14 +233,14 @@ void convert_coo_to_csr(const COO coo, CSR *csr) {
     n = coo->n;
     NZ = coo->NZ;
 
-    alloc_sparse_csr(m + 1, NZ, &sp);
+    alloc_sparse_csr(m, n, NZ, &sp);
 
     // determine the row lengths (the first row is always 0)
     for(i = 0; i < NZ; i++){
         sp->IA[coo->coords[i].i + 1]++;
     }
 
-    for (i = 0; i < m; i++) {
+    for (i = 0; i < m + 1; i++) {
         sp->IA[i + 1] += sp->IA[i];
     }
 
@@ -361,6 +365,27 @@ void write_sparse(FILE *f, COO sp)
 }
 
 /*
+ * Write a sparse matrix to a file.
+ *
+ * f - The file handle.
+ * sp - The sparse matrix to write.
+ */
+void write_sparse_csr(FILE *f, CSR sp)
+{
+    int i;
+    printf(f, "%d %d\n", sp->m, sp->NZ);
+    for (i = 0; i < sp->m + 1; i++) {
+        fprintf(f, "%d ", sp->IA[i]);
+    }
+    for (i = 0; i < sp->NZ; i++) {
+        fprintf(f, "%d ", sp->JA[i]);
+    }
+    for (i = 0; i < sp->NZ; i++) {
+        fprintf(f, "%f ", sp->A[i]);
+    }
+}
+
+/*
  * Print a sparse matrix to stdout
  *
  * sp - The sparse matrix to print.
@@ -368,6 +393,16 @@ void write_sparse(FILE *f, COO sp)
 void print_sparse(COO sp)
 {
     write_sparse(stdout, sp);
+}
+
+/*
+ * Print a sparse matrix to stdout
+ *
+ * sp - The sparse matrix to print.
+ */
+void print_sparse_csr(CSR sp)
+{
+    write_sparse_csr(stdout, sp);
 }
 
 void read_sparse_binary(const char *file, COO *sparse)
