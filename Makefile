@@ -1,8 +1,8 @@
-CFLAGS = -O3 -march=native  -D_GNU_SOURCE -pg -ftree-vectorize
+CFLAGS = -O3 -march=native  -D_GNU_SOURCE -pg
 LDFLAGS = -lm
 CC = gcc
-
-GPROF= -pg
+VECREPORT = -O3 -march=native  -D_GNU_SOURCE -ftree-vectorize
+GPROF = -pg
 
 LIKWID = -mfma -DLIKWID_PERFMON -I$LIKWID_PATH/include -L$LIKWID_PATH/lib -llikwid -lpthread -lm
 
@@ -39,3 +39,7 @@ performance: sparsemm.c $(OBJ)
 
 gprof: sparsemm.c $(OBJ)
 	$(CC) $(CFLAGS) -o sparsemm $< $(OBJ) $(LDFLAGS) $(GPROF)
+
+vecreport: sparsemm.c $(OBJ)
+	$(CC) $(VECREPORT) -o sparsemm $< $(OBJ) $(LDFLAGS)
+
