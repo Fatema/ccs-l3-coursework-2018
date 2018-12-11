@@ -25,7 +25,7 @@ int main(int argc, char **argv)
     m = 5;
     k = 5;
 
-    random_matrix(m, k, 0.3, &A);
+    random_matrix(m, k, 0.1, &A);
     optimised_sparsemm(A, A, &C);
     // // random_matrix(m, k, 0.3, &B);
 
