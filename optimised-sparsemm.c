@@ -61,6 +61,8 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
 
     printf("%lf\n",omp_get_wtime() - start );
 
+    cpos++;
+
     res->NZ = cpos;
     res->coords = realloc(res->coords, cpos * sizeof(struct coord));
     res->data = realloc(res->data, cpos * sizeof(double));
