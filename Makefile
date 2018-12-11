@@ -37,7 +37,7 @@ test: test.c $(OBJ)
 	$(ACC) -o $@ $< $(OBJ) $(LDFLAGS)
 
 %.o: %.c $(HEADER)
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(ACC) -c -o $@ $<
 
 performance: sparsemm.c $(OBJ)
 	$(CC) $(CFLAGS) -o sparsemm $< $(OBJ) $(LDFLAGS) $(LIKWID)
