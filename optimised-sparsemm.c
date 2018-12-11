@@ -169,6 +169,7 @@ void transpose_coo_acc(const COO coo, COO *transposed)
     int rpos;
 
     // this one cannot be easily parallized 
+    #pragma acc data copyin(index[0:m],coords[0:NZ]), copyout(spcoords[0:NZ], spdata[0:NZ])
     #pragma acc parallel loop
     for (i = 0; i < NZ; i++){
         rpos = index[coords[i].j];
@@ -178,6 +179,9 @@ void transpose_coo_acc(const COO coo, COO *transposed)
         #pragma acc atomic update
         index[coords[i].j]++;
     }
+
+    sp->coords = spcoords;
+    sp->data = spdata;
     
     // the above method ensures 
     // sorting of transpose matrix 
