@@ -13,4 +13,4 @@
 module load pgi/17.9
 module load intel/xe_2018.2
 
-/ddn/apps/Cluster-Apps/intel/xe_2018.2/vtune_amplifier_2018.2.0.551022/bin64/amplxe-cl -collect hotspots ./sparsemm c.matrix /ddn/home/mmgw12/matrices-lg/DG4-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG4-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG4-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG4-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG4-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG4-mass-3D.matrix 
+/ddn/apps/Cluster-Apps/intel/xe_2018.2/vtune_amplifier_2018.2.0.551022/bin64/amplxe-cl -collect hotspots ./sparsemm c2.matrix /ddn/home/mmgw12/matrices-lg/DG4-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG4-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG4-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG4-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG4-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG4-mass-3D.matrix 
