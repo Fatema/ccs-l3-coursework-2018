@@ -2,9 +2,8 @@
 #SBATCH --job-name="mmgw12-csr-mm-hotspots"
 #SBATCH -o hotspots
 #SBATCH -e error.err
-#SBATCH -p par6.q
+#SBATCH -p par7.q
 #SBATCH -t 00:05:00
-#SBATCH --nodes=1
 #SBATCH --mail-user=fatema.alkhanaizi@durham.ac.uk
 #SBATCH --mail-type=ALL
 
