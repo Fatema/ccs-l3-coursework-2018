@@ -19,7 +19,7 @@ int main(int argc, char **argv)
         y[j] = -j; 
     }
 
-    printf("%d", x[10]);
+    printf("%d", x[9]);
 
     // m = 5;
     // k = 5;
