@@ -19,9 +19,9 @@ typedef struct _p_COO *COO;
 
 struct _p_CSR {
     int m, n, NZ;
-    int *IA;
-    int *JA;
-    double *A;
+    int *I;
+    int *J;
+    double *data;
 };
 
 typedef struct _p_CSR *CSR;

@@ -4,6 +4,10 @@
 void coo_sum_duplicates(const COO coo, COO *nodups);
 void transpose_coo(const COO coo, COO *transposed);
 void transpose_csr(const CSR csr, CSR *transposed);
+void csr_mm_multiply(const CSR a, const CSR b, CSR *c);
+void csr_mm_multiply_acc(const CSR a, const CSR b, CSR *c);
+void coo_mm_multiply(const COO a, const COO b, COO *c);
+void coo_mm_multiply_acc(const COO a, const COO b, COO *c);
 void basic_sparsemm(const COO, const COO, COO *);
 void basic_sparsemm_sum(const COO, const COO, const COO,
                         const COO, const COO, const COO,
@@ -44,7 +48,7 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
 
     start = omp_get_wtime();
 
-    // with this approach sorting A and B is not really necessary, neither is transposing B 
+    // with this approach sorting A and B is not really necessary, neither is transposing B
     #pragma acc data copyin(acoord[0:ANZ],bcoord[0:BNZ], adataarr[0:ANZ], bdataarr[0:BNZ]), copyout(rcoord[0:ANZ * BNZ], rdataarr[0:ANZ * BNZ])
     #pragma acc parallel loop
     for(apos = 0; apos < ANZ; apos++) {
@@ -58,7 +62,8 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
             bdata = bdataarr[bpos];
             // transpose is not really needed for this case
             if (acol == bcol) {
-                #pragma acc atomic
+                // this is slowing down the parallization
+                #pragma acc atomic update
                 {
                     cpos++; // I can use this to keep track if I'm about to run out of allocated memory
                 }
@@ -123,11 +128,14 @@ void transpose_coo(const COO coo, COO *transposed)
 
     // count number of elements in each column
     int count[m];
+    #pragma acc parallel loop
     for(i = 0; i < m; i++){
         count[i] = 0;
     }
 
+    #pragma acc parallel loop
     for(i = 0; i < NZ; i++){
+        #pragma acc atomic update
         count[coo->coords[i].j]++;
     }
 
@@ -147,11 +155,13 @@ void transpose_coo(const COO coo, COO *transposed)
     int rpos;
 
     // this one cannot be easily parallized 
+    #pragma acc parallel loop
     for (i = 0; i < NZ; i++){
         rpos = index[coo->coords[i].j];
         sp->coords[rpos].i = coo->coords[i].j;
         sp->coords[rpos].j = coo->coords[i].i;
         sp->data[rpos] = coo->data[i];
+        #pragma acc atomic update
         index[coo->coords[i].j]++;
     }
     
@@ -209,7 +219,7 @@ void transpose_csr(const CSR csr, CSR *transposed){
 
     // count the number of columns (rows for the transposed csr)
     for(i = 0; i < NZ; i++){
-        csrt->IA[csr->JA[i] + 1]++;
+        csrt->I[csr->J[i] + 1]++;
     }
 
     // set a pointer for the cumulative sum of the rows index
@@ -218,23 +228,105 @@ void transpose_csr(const CSR csr, CSR *transposed){
     q = 0;
     for (i = 0; i < n + 1; i++) {
         p[i] = q;
-        q += csrt->IA[i];
-        csrt->IA[i] = p[i];
+        q += csrt->I[i];
+        csrt->I[i] = p[i];
     }
 
     for(i = 0; i < m + 1; i++){
-        ir = csr->IA[i];
-        nir = csr->IA[i + 1];
+        ir = csr->I[i];
+        nir = csr->I[i + 1];
         for(jp = ir; jp < nir; jp++){
-            j = csr->JA[jp];
-            jpt = csrt->IA[j + 1];
-            csrt->JA[jpt] = i;
-            csrt->A[jpt] = csr->A[jp];
-            csrt->IA[j + 1] = jpt + 1;
+            j = csr->J[jp];
+            jpt = csrt->I[j + 1];
+            csrt->J[jpt] = i;
+            csrt->data[jpt] = csr->data[jp];
+            csrt->I[j + 1] = jpt + 1;
         }
     }
 
-    csrt->IA[0] = 0;
+    csrt->I[0] = 0;
 
     *transposed = csrt;
 }
+
+void rezero_boolean_arr(const CSR a, const CSR b, int arr[], int *xb){
+    int ip, i, vp, v, kp, k, jp, j;
+    CSR c;
+
+    ip =  c->I[i];
+
+    for (vp = a->I[i]; vp < a->I[i+1]; vp++){
+        v = a->J[vp];
+        for (kp = b->I[v]; kp < b->I[v+1]; kp++){
+            k = b->J[kp];
+            if (arr[k] == 0) {
+                c->J[ip] = k;
+                ip++;
+                xb[k] = 1;
+            }
+        }
+    }
+
+    for (jp = c->I[i]; jp < ip; jp++){
+        j = c->J[jp];
+        xb[j] = 0;
+    }
+}
+
+void csr_mm_multiply(const CSR a, const CSR b, CSR *c){
+    int ip, i, jp, j, kp, k, vp, v; // scalar intergers
+
+    CSR ctemp; // temporary matrix to hold c data
+
+    int r, p ,q; // matrices size
+    r = b->n; // b = q x r
+    p = a->m; // a = p x q
+    q = a->n; // must be equal to b->m
+
+    int xb[r], x[r]; // vectors of length r that will hold integer and floating point data
+
+    int ibot = a-> NZ + b->NZ; // intial value for ctemp size
+
+    alloc_sparse_csr(p, r, ibot, &ctemp);
+
+    ip = 0; // keeps track of value positions for matrix c
+
+    for(v = 0; v < r; r++){
+        xb[v] = 0;
+    }
+
+    for(i = 0; i < p; i++){
+        ctemp->I[i] = ip;
+        for(jp = a->I[i]; jp < a->I[i + 1]; jp++){
+            j = a->J[jp];
+            for(kp = b->I[j]; kp < b->I[j + 1]; kp++){
+                k = b->J[kp];
+                if(xb[k] != i){
+                    ctemp->J[ip] = k;
+                    ip++;
+                    xb[k] = i;
+                    x[k] = a->J[jp] * b->J[kp];
+                } else {
+                    x[k] += a->J[jp] * b->J[kp];
+                }
+            }
+        }
+
+        if(ip > ibot - r) {
+            ctemp->J = realloc(ctemp->J, (ibot * 2) * sizeof(int));
+            ctemp->data = realloc(ctemp->data, (ibot * 2) * sizeof(int));
+            ibot = ibot * 2; // double the size of our ibot
+        }
+
+        for(vp = ctemp->I[i]; vp < ip; vp++){
+            v = ctemp->J[vp];
+            ctemp->data[vp] = x[v];
+        }
+    }
+
+    ctemp->I[p + 1] = ip;
+    ctemp->J = realloc(ctemp->J, ip * sizeof(int));
+    ctemp->data = realloc(ctemp->data, ip * sizeof(int));
+
+    *c = ctemp;
+} 

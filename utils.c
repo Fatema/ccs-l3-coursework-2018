@@ -99,10 +99,10 @@ void free_sparse(COO *sparse)
 void alloc_sparse_csr(int m, int n, int NZ, CSR *sparse)
 {
     CSR sp = calloc(1, sizeof(struct _p_CSR));
-    // size of IA is m + 1 to guarantee the formula IA[i + 1] − IA[i] works for any row i 
-    sp->IA = calloc(m + 1, sizeof(int));
-    sp->JA = calloc(NZ, sizeof(int));
-    sp->A = calloc(NZ, sizeof(double));
+    // size of I is m + 1 to guarantee the formula I[i + 1] − I[i] works for any row i
+    sp->I = calloc(m + 1, sizeof(int));
+    sp->J = calloc(NZ, sizeof(int));
+    sp->data = calloc(NZ, sizeof(double));
     sp->m = m;
     sp->n = n;
     sp->NZ = NZ;
@@ -119,9 +119,9 @@ void free_sparse_csr(CSR *sparse)
     if (!sp) {
         return;
     }
-    free(sp->IA);
-    free(sp->JA);
-    free(sp->A);
+    free(sp->I);
+    free(sp->J);
+    free(sp->data);
     free(sp);
     *sparse = NULL;
 }
@@ -210,12 +210,12 @@ void convert_csr_to_coo(const CSR csr, COO *coo) {
 
     // cannot be vectorized
     for(i = 0; i < m; i++){
-        nrow = csr->IA[i + 1] - csr->IA[i];
-        row = csr->IA[i];
+        nrow = csr->I[i + 1] - csr->I[i];
+        row = csr->I[i];
         for(r = 0; r < nrow; r++){
             sp->coords[row + r].i = i;
-            sp->coords[row + r].j = csr->JA[row + r];
-            sp->data[row + r] = csr->A[row + r];
+            sp->coords[row + r].j = csr->J[row + r];
+            sp->data[row + r] = csr->data[row + r];
         }
     }
 
@@ -237,27 +237,27 @@ void convert_coo_to_csr(const COO coo, CSR *csr) {
 
     // determine the row lengths (the first row is always 0)
     for(i = 0; i < NZ; i++){
-        sp->IA[coo->coords[i].i + 1]++;
+        sp->I[coo->coords[i].i + 1]++;
     }
 
     for (i = 0; i < m + 1; i++) {
-        sp->IA[i + 1] += sp->IA[i];
+        sp->I[i + 1] += sp->I[i];
     }
 
      /* go through the structure  once more. Fill in output matrix. */
     for (l = 0; l < NZ; l++){
-        i = sp->IA[coo->coords[l].i];
-        sp->A[i] = coo->data[l];
-        sp->JA[i] = coo->coords[l].j;
-        sp->IA[coo->coords[l].i]++;
+        i = sp->I[coo->coords[l].i];
+        sp->data[i] = coo->data[l];
+        sp->J[i] = coo->coords[l].j;
+        sp->I[coo->coords[l].i]++;
     }
 
     /* shift back row_start */
     for (i = n; i > 0; i--){
-        sp->IA[i] = sp->IA[i - 1];
+        sp->I[i] = sp->I[i - 1];
     }
 
-    sp->IA[0] = 0;
+    sp->I[0] = 0;
 
     *csr = sp;
 }
@@ -375,13 +375,13 @@ void write_sparse_csr(FILE *f, CSR sp)
     int i;
     printf(f, "%d %d\n", sp->m, sp->NZ);
     for (i = 0; i < sp->m + 1; i++) {
-        fprintf(f, "%d ", sp->IA[i]);
+        fprintf(f, "%d ", sp->I[i]);
     }
     for (i = 0; i < sp->NZ; i++) {
-        fprintf(f, "%d ", sp->JA[i]);
+        fprintf(f, "%d ", sp->J[i]);
     }
     for (i = 0; i < sp->NZ; i++) {
-        fprintf(f, "%f ", sp->A[i]);
+        fprintf(f, "%f ", sp->data[i]);
     }
 }
 
