@@ -62,12 +62,12 @@ void coo_mm_multiply_acc(const COO A, const COO B, COO *C){
 
     // with this approach sorting A and B is not really necessary, neither is transposing B
     #pragma acc data copyin(acoord[0:ANZ],bcoord[0:BNZ], adataarr[0:ANZ], bdataarr[0:BNZ]), copyout(rcoord[0:ANZ * BNZ], rdataarr[0:ANZ * BNZ])
-    #pragma acc parallel loop reduction(+:cpos)
+    #pragma acc parallel loop
     for(apos = 0; apos < ANZ; apos++) {
         arow = acoord[apos].i;
         acol = acoord[apos].j;
         adata = adataarr[apos];
-        #pragma acc loop reduction(+:cpos)
+        #pragma acc loop
         for(bpos = 0; bpos < BNZ; bpos++) {
             brow = bcoord[bpos].j;
             bcol = bcoord[bpos].i;
@@ -75,24 +75,12 @@ void coo_mm_multiply_acc(const COO A, const COO B, COO *C){
             // transpose is not really needed for this case
             if (acol == bcol) {
                 // this is slowing down the parallization
+                #pragma acc atomic update
                 cpos++; // I can use this to keep track if I'm about to run out of allocated memory
-                rcoord[apos * ANZ + bpos].i = arow;
-                rcoord[apos * ANZ + bpos].j = brow;
-                rdataarr[apos * ANZ + bpos] =  adata * bdata;
+                rcoord[cpos].i = arow;
+                rcoord[cpos].j = brow;
+                rdataarr[cpos] =  adata * bdata;
             }
-        }
-    }
-
-    int shift = 0;
-    for(int i = 0; i < ANZ * BNZ; i++){
-        if(rdataarr[i] == 0) {
-            shift++;
-        } else {
-            rdataarr[i - shift] = rdataarr[i];
-        }
-        // all elements has been shifted
-        if(i - shift == cpos) {
-            break;
         }
     }
 
@@ -142,14 +130,11 @@ void transpose_coo_acc(const COO coo, COO *transposed)
 
     // count number of elements in each column
     int count[m];
-    #pragma acc parallel loop
     for(i = 0; i < m; i++){
         count[i] = 0;
     }
 
-    #pragma acc parallel loop
     for(i = 0; i < NZ; i++){
-        #pragma acc atomic update
         count[coords[i].j]++;
     }
 
@@ -169,14 +154,11 @@ void transpose_coo_acc(const COO coo, COO *transposed)
     int rpos;
 
     // this one cannot be easily parallized 
-    #pragma acc data copyin(index[0:m],coords[0:NZ]), copyout(spcoords[0:NZ], spdata[0:NZ])
-    #pragma acc parallel loop
     for (i = 0; i < NZ; i++){
         rpos = index[coords[i].j];
         spcoords[rpos].i = coords[i].j;
         spcoords[rpos].j = coords[i].i;
         spdata[rpos] = coodata[i];
-        #pragma acc atomic update
         index[coords[i].j]++;
     }
 

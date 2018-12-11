@@ -205,36 +205,19 @@ void convert_csr_to_coo(const CSR csr, COO *coo) {
     n = csr->n;
     NZ = csr->NZ;
 
-    int *csrI, *csrJ, *csrdata;
-    
-    csrI = csr->I;
-    csrJ = csr->J;
-    csrdata = csr->data;
-
     // column numbers is lost in this case
     alloc_sparse(m, n, NZ, &sp);
 
-    struct coord *spcoords;
-    double *spdata;
-
-    spcoords = sp->coords;
-    spdata = sp->data;
-
-    #pragma acc data copyin(csrI[0:m],csrJ[0:NZ], csrdata[0:NZ]), copyout(spcoords[0:NZ], spdata[0:NZ])
-    #pragma acc parallel loop
+    // cannot be vectorized
     for(i = 0; i < m; i++){
-        nrow = csrI[i + 1] - csrI[i];
-        row = csrI[i];
-        #pragma acc loop
+        nrow = csr->I[i + 1] - csr->I[i];
+        row = csr->I[i];
         for(r = 0; r < nrow; r++){
-            spcoords[row + r].i = i;
-            spcoords[row + r].j = csrJ[row + r];
-            spdata[row + r] = csrdata[row + r];
+            sp->coords[row + r].i = i;
+            sp->coords[row + r].j = csr->J[row + r];
+            sp->data[row + r] = csr->data[row + r];
         }
     }
-
-    sp->coords = spcoords;
-    sp->data = spdata;
 
     *coo = sp;
 }
@@ -253,9 +236,7 @@ void convert_coo_to_csr(const COO coo, CSR *csr) {
     alloc_sparse_csr(m, n, NZ, &sp);
 
     // determine the row lengths (the first row is always 0)
-    #pragma acc parallel loop
     for(i = 0; i < NZ; i++){
-        #pragma acc atomic update
         sp->I[coo->coords[i].i + 1]++;
     }
 
@@ -264,12 +245,10 @@ void convert_coo_to_csr(const COO coo, CSR *csr) {
     }
 
      /* go through the structure  once more. Fill in output matrix. */
-    #pragma acc parallel loop
     for (l = 0; l < NZ; l++){
         i = sp->I[coo->coords[l].i];
         sp->data[i] = coo->data[l];
         sp->J[i] = coo->coords[l].j;
-        #pragma acc atomic update
         sp->I[coo->coords[l].i]++;
     }
 
