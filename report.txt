@@ -21,7 +21,7 @@ transpose_coo_acc:
          Loop unrolled 2 times
 coo_sum_duplicates:
     175, Loop not vectorized: data dependency
-transpose_csr:
+csr_transpose:
     211, Loop not vectorized: data dependency
          Loop unrolled 2 times
     219, Loop not vectorized: data dependency
