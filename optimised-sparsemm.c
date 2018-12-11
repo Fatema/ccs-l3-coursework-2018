@@ -39,29 +39,29 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
     start = omp_get_wtime();
 
     // with this approach sorting A and B is not really necessary, neither is transposing B 
-    // #pragma acc data copyin(acoord[0:ANZ],bcoord[0:BNZ], adataarr[0:ANZ], bdataarr[0:BNZ]), copyout(rcoord[0:ANZ * BNZ], rdataarr[0:ANZ * BNZ])
-    // #pragma acc parallel loop
-    // for(apos = 0; apos < ANZ; apos++) {
-    //     arow = acoord[apos].i;
-    //     acol = acoord[apos].j;
-    //     adata = adataarr[apos];
-    //     #pragma acc loop
-    //     for(bpos = 0; bpos < BNZ; bpos++) {
-    //         brow = bcoord[bpos].j;
-    //         bcol = bcoord[bpos].i;
-    //         bdata = bdataarr[bpos];
-    //         // transpose is not really needed for this case
-    //         if (acol == bcol) {
-    //             #pragma acc atomic
-    //             {
-    //                 cpos++; // I can use this to keep track if I'm about to run out of allocated memory
-    //             }
-    //             rcoord[cpos].i = arow;
-    //             rcoord[cpos].j = brow;
-    //             rdataarr[cpos] =  adata * bdata;
-    //         }
-    //     }
-    // }
+    #pragma acc data copyin(acoord[0:ANZ],bcoord[0:BNZ], adataarr[0:ANZ], bdataarr[0:BNZ]), copyout(rcoord[0:ANZ * BNZ], rdataarr[0:ANZ * BNZ])
+    #pragma acc parallel loop
+    for(apos = 0; apos < ANZ; apos++) {
+        arow = acoord[apos].i;
+        acol = acoord[apos].j;
+        adata = adataarr[apos];
+        #pragma acc loop
+        for(bpos = 0; bpos < BNZ; bpos++) {
+            brow = bcoord[bpos].j;
+            bcol = bcoord[bpos].i;
+            bdata = bdataarr[bpos];
+            // transpose is not really needed for this case
+            if (acol == bcol) {
+                #pragma acc atomic
+                {
+                    cpos++; // I can use this to keep track if I'm about to run out of allocated memory
+                }
+                rcoord[cpos].i = arow;
+                rcoord[cpos].j = brow;
+                rdataarr[cpos] =  adata * bdata;
+            }
+        }
+    }
 
 
     printf("%lf\n",omp_get_wtime() - start );
