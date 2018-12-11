@@ -8,7 +8,7 @@ LIKWID = -mfma -DLIKWID_PERFMON -I$LIKWID_PATH/include -L$LIKWID_PATH/lib -llikw
 
 ACC = pgcc -acc -Minfo -O3
 
-OBJ = optimised-sparsemm.o basic-sparsemm.o utils.o
+OBJ = utils.o optimised-sparsemm.o basic-sparsemm.o
 HEADER = utils.h
 
 .PHONY: clean help check
