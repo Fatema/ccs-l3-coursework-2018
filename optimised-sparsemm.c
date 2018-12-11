@@ -27,31 +27,39 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
     // bound to the multiplication matrixx https://www.degruyter.com/downloadpdf/j/comp.2014.4.issue-1/s13537-014-0201-x/s13537-014-0201-x.pdf
     alloc_sparse(A->m, B->n, ANZ * BNZ, &res);
 
-    cpos = 0;
+    cpos = -1;
+
+    double start;
+    start = omp_get_wtime();
 
     // with this approach sorting A and B is not really necessary, neither is transposing B 
-    #pragma acc parallel loop {
-        for(apos = 0; apos < ANZ; apos++) {
-            arow = A->coords[apos].i;
-            acol = A->coords[apos].j;
-            adata = A->data[apos];
-            for(bpos = 0; bpos < BNZ; bpos++) {
-                brow = B->coords[bpos].j;
-                bcol = B->coords[bpos].i;
-                bdata = B->data[bpos];
-                // transpose is not really needed for this case
-                if (acol == bcol) {
-                    res->coords[cpos].i = arow;
-                    res->coords[cpos].j = brow;
-                    res->data[cpos] =  adata * bdata;
-                    #pragma acc atomic
-                    {
-                        cpos++; // I can use this to keep track if I'm about to run out of allocated memory
+    #pragma acc data copyin(A,B),
+            copyout(res){
+        #pragma acc parallel loop {
+            for(apos = 0; apos < ANZ; apos++) {
+                arow = A->coords[apos].i;
+                acol = A->coords[apos].j;
+                adata = A->data[apos];
+                for(bpos = 0; bpos < BNZ; bpos++) {
+                    brow = B->coords[bpos].j;
+                    bcol = B->coords[bpos].i;
+                    bdata = B->data[bpos];
+                    // transpose is not really needed for this case
+                    if (acol == bcol) {
+                        #pragma acc atomic
+                        {
+                            cpos++; // I can use this to keep track if I'm about to run out of allocated memory
+                        }
+                        res->coords[cpos].i = arow;
+                        res->coords[cpos].j = brow;
+                        res->data[cpos] =  adata * bdata;
                     }
                 }
             }
         }
     }
+
+    printf("%lf\n",omp_get_wtime() - start );
 
     res->NZ = cpos;
     res->coords = realloc(res->coords, cpos * sizeof(struct coord));
