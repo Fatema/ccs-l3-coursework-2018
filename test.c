@@ -19,6 +19,8 @@ int main(int argc, char **argv)
         y[j] = -j; 
     }
 
+    printf("%d", x[10])
+
     // m = 5;
     // k = 5;
 
