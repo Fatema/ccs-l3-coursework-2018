@@ -45,6 +45,7 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
         arow = acoord[apos].i;
         acol = acoord[apos].j;
         adata = adataarr[apos];
+        #pragma acc loop
         for(bpos = 0; bpos < BNZ; bpos++) {
             brow = bcoord[bpos].j;
             bcol = bcoord[bpos].i;
