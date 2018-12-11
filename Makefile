@@ -28,7 +28,7 @@ check: sparsemm
 	./sparsemm CHECK
 
 sparsemm: sparsemm.c $(OBJ)
-	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDFLAGS)
+	$(ACC) -o $@ $< $(OBJ) $(LDFLAGS)
 
 # test: test.c $(OBJ)
 # 	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDFLAGS)
