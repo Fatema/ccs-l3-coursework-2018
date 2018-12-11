@@ -1,4 +1,4 @@
-CFLAGS = -O0 -march=native  -D_GNU_SOURCE -pg
+CFLAGS = -O3 -march=native  -D_GNU_SOURCE -pg
 LDFLAGS = -lm
 CC = gcc
 VECREPORT = -O3 -march=native  -D_GNU_SOURCE -ftree-vectorize
@@ -37,7 +37,7 @@ test: test.c $(OBJ)
 	$(ACC) -o $@ $< $(OBJ) $(LDFLAGS)
 
 %.o: %.c $(HEADER)
-	$(ACC) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 performance: sparsemm.c $(OBJ)
 	$(CC) $(CFLAGS) -o sparsemm $< $(OBJ) $(LDFLAGS) $(LIKWID)
