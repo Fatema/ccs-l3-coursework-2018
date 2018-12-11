@@ -11,6 +11,13 @@ int main(int argc, char **argv)
     CSR csr, csrt;
     int m, k;
     int pass = 0;
+    int x[10], y[10];
+
+    #pragma acc parallel loop 
+    for (int j = 0; j < 10; j++) { 
+        x[j] = j; 
+        y[j] = -j; 
+    }
 
     m = 5;
     k = 5;
