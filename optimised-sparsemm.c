@@ -298,7 +298,8 @@ void csr_mm_multiply(const COO acoo, const COO bcoo, COO *c){
 
     ip = 0; // keeps track of value positions for matrix c
 
-    for(v = 0; v < r; r++){
+
+    for(v = 0; v < r; v++) {
         xb[v] = 0;
     }
 
