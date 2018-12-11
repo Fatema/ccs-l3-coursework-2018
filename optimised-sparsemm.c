@@ -469,7 +469,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     int xb[r];
     double x[r]; // vectors of length r that will hold integer and floating point data
 
-    int ibot = a->NZ + b->NZ; // intial value for ctemp size
+    int ibot = p * r; // intial value for ctemp size
 
     alloc_sparse_csr(p, r, ibot, &ctemp);
 
@@ -496,12 +496,6 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
                     x[k] += a->data[jp] * b->data[kp];
                 }
             }
-        }
-
-        if (ip > ibot - r) {
-            ctemp->J = realloc(ctemp->J, (ibot * 2) * sizeof(int));
-            ctemp->data = realloc(ctemp->data, (ibot * 2) * sizeof(int));
-            ibot = ibot * 2; // double the size of our ibot
         }
 
         for (vp = ctemp->I[i]; vp < ip; vp++) {
