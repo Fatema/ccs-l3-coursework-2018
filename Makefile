@@ -33,7 +33,7 @@ sparsemm: sparsemm.c $(OBJ)
 # test: test.c $(OBJ)
 # 	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDFLAGS)
 
-test: test.c
+test: test.c $(HEADER)
 	$(ACC) -o $@ $<
 
 %.o: %.c $(HEADER)
