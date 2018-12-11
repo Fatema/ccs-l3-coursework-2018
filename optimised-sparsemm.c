@@ -32,29 +32,28 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
     start = omp_get_wtime();
 
     // with this approach sorting A and B is not really necessary, neither is transposing B 
-    // #pragma acc data copyin(A,B),
-    //         copyout(res)
-    //     #pragma acc parallel loop
-    //     for(apos = 0; apos < ANZ; apos++) {
-    //         arow = A->coords[apos].i;
-    //         acol = A->coords[apos].j;
-    //         adata = A->data[apos];
-    //         for(bpos = 0; bpos < BNZ; bpos++) {
-    //             brow = B->coords[bpos].j;
-    //             bcol = B->coords[bpos].i;
-    //             bdata = B->data[bpos];
-    //             // transpose is not really needed for this case
-    //             if (acol == bcol) {
-    //                 #pragma acc atomic
-    //                 {
-    //                     cpos++; // I can use this to keep track if I'm about to run out of allocated memory
-    //                 }
-    //                 res->coords[cpos].i = arow;
-    //                 res->coords[cpos].j = brow;
-    //                 res->data[cpos] =  adata * bdata;
-    //             }
-    //         }
-    //     }
+    #pragma acc data copyin(A,B), copyout(res)
+    #pragma acc parallel loop
+    for(apos = 0; apos < ANZ; apos++) {
+        arow = A->coords[apos].i;
+        acol = A->coords[apos].j;
+        adata = A->data[apos];
+        for(bpos = 0; bpos < BNZ; bpos++) {
+            brow = B->coords[bpos].j;
+            bcol = B->coords[bpos].i;
+            bdata = B->data[bpos];
+            // transpose is not really needed for this case
+            if (acol == bcol) {
+                #pragma acc atomic
+                {
+                    cpos++; // I can use this to keep track if I'm about to run out of allocated memory
+                }
+                res->coords[cpos].i = arow;
+                res->coords[cpos].j = brow;
+                res->data[cpos] =  adata * bdata;
+            }
+        }
+    }
 
 
     printf("%lf\n",omp_get_wtime() - start );
