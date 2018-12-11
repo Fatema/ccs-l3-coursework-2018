@@ -4,7 +4,6 @@
 #SBATCH -e error.err
 #SBATCH -p par6.q
 #SBATCH -t 00:05:00
-#SBATCH --exclusive
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=24
 #SBATCH --mail-user=fatema.alkhanaizi@durham.ac.uk
