@@ -1,12 +1,12 @@
 CFLAGS = -O3 -march=native  -D_GNU_SOURCE -pg
-LDFLAGS = -lm
+LDFLAGS = -lm -Mprof=lines 
 CC = gcc
 VECREPORT = -O3 -march=native  -D_GNU_SOURCE -ftree-vectorize
 GPROF = -pg
 
 LIKWID = -mfma -DLIKWID_PERFMON -I$LIKWID_PATH/include -L$LIKWID_PATH/lib -llikwid -lpthread -lm
 
-ACC = pgcc -acc -Minfo
+ACC = pgcc -acc -Minfo -O3
 
 OBJ = optimised-sparsemm.o basic-sparsemm.o utils.o
 HEADER = utils.h
@@ -34,10 +34,10 @@ sparsemm: sparsemm.c $(OBJ)
 # 	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDFLAGS)
 
 test: test.c $(HEADER)
-	$(ACC) -o $@ $<
+	$(ACC) -o $@ $< $(LDFLAGS) $(OBJECTS)
 
 %.o: %.c $(HEADER)
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(ACC) -c -o $@ $<
 
 performance: sparsemm.c $(OBJ)
 	$(CC) $(CFLAGS) -o sparsemm $< $(OBJ) $(LDFLAGS) $(LIKWID)
