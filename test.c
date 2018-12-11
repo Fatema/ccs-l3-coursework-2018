@@ -8,7 +8,7 @@
 int main(int argc, char **argv)
 {
     // COO A, AT, B;
-    COO A;
+    COO A, C;
     // CSR csr, csrt;
     int m, k;
     int pass = 0;
@@ -26,6 +26,7 @@ int main(int argc, char **argv)
     k = 5;
 
     random_matrix(m, k, 0.3, &A);
+    optimised_sparsemm(A, A, &C);
     // // random_matrix(m, k, 0.3, &B);
 
     // // transpose_coo(B, &AT);
@@ -35,6 +36,7 @@ int main(int argc, char **argv)
     // convert_csr_to_coo(csrt, &AT);
 
     print_sparse(A);
+    print_sparse(C);
     // print_sparse_csr(csr);
     // print_sparse_csr(csrt);
     // print_sparse(AT);

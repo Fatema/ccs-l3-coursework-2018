@@ -23,9 +23,11 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
     struct coord *acoord, *bcoord, *rcoord;
     double *adataarr, *bdataarr, *rdataarr;
 
-    
     acoord = A->coords;
     bcoord = B->coords;
+
+    adataarr = A->data;
+    bdataarr = B->data;
 
     ANZ = A->NZ;
     BNZ = B->NZ;
@@ -33,9 +35,13 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
     // bound to the multiplication matrixx https://www.degruyter.com/downloadpdf/j/comp.2014.4.issue-1/s13537-014-0201-x/s13537-014-0201-x.pdf
     alloc_sparse(A->m, B->n, ANZ * BNZ, &res);
 
+    rcoord = res->coords;
+    rdataarr = res->data;
+
     cpos = -1;
 
     double start;
+
     start = omp_get_wtime();
 
     // with this approach sorting A and B is not really necessary, neither is transposing B 
