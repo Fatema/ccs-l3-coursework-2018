@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     optimised_sparsemm(A, A, &C);
     // // random_matrix(m, k, 0.3, &B);
 
-    // // transpose_coo(B, &AT);
+    // // transpose_coo_acc(B, &AT);
 
     // convert_coo_to_csr(A, &csr);
     // transpose_csr(csr, &csrt);

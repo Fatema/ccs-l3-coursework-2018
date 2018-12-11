@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 void coo_sum_duplicates(const COO coo, COO *nodups);
-void transpose_coo(const COO coo, COO *transposed);
+void transpose_coo_acc(const COO coo, COO *transposed);
 void transpose_csr(const CSR csr, CSR *transposed);
 void csr_mm_multiply(const COO a, const COO b, COO *c);
 void csr_mm_multiply_acc(const COO a, const COO b, COO *c);
@@ -62,12 +62,12 @@ void coo_mm_multiply_acc(const COO A, const COO B, COO *C){
 
     // with this approach sorting A and B is not really necessary, neither is transposing B
     #pragma acc data copyin(acoord[0:ANZ],bcoord[0:BNZ], adataarr[0:ANZ], bdataarr[0:BNZ]), copyout(rcoord[0:ANZ * BNZ], rdataarr[0:ANZ * BNZ])
-    #pragma acc parallel loop
+    #pragma acc parallel loop reduction(+:cpos)
     for(apos = 0; apos < ANZ; apos++) {
         arow = acoord[apos].i;
         acol = acoord[apos].j;
         adata = adataarr[apos];
-        #pragma acc loop
+        #pragma acc loop reduction(+:cpos)
         for(bpos = 0; bpos < BNZ; bpos++) {
             brow = bcoord[bpos].j;
             bcol = bcoord[bpos].i;
@@ -75,14 +75,24 @@ void coo_mm_multiply_acc(const COO A, const COO B, COO *C){
             // transpose is not really needed for this case
             if (acol == bcol) {
                 // this is slowing down the parallization
-                #pragma acc atomic update
-                {
-                    cpos++; // I can use this to keep track if I'm about to run out of allocated memory
-                }
-                rcoord[cpos].i = arow;
-                rcoord[cpos].j = brow;
-                rdataarr[cpos] =  adata * bdata;
+                cpos++; // I can use this to keep track if I'm about to run out of allocated memory
+                rcoord[apos * ANZ + bpos].i = arow;
+                rcoord[apos * ANZ + bpos].j = brow;
+                rdataarr[apos * ANZ + bpos] =  adata * bdata;
             }
+        }
+    }
+
+    int shift = 0;
+    for(int i = 0; i < ANZ * BNZ; i++){
+        if(rdataarr[i] == 0) {
+            shift++;
+        } else {
+            rdataarr[i - shift] = rdataarr[i];
+        }
+        // all elements has been shifted
+        if(i - shift == cpos) {
+            break;
         }
     }
 
@@ -94,8 +104,8 @@ void coo_mm_multiply_acc(const COO A, const COO B, COO *C){
 
     // the removing of duplicates can be done in merge sort style
     // sort the result
-    transpose_coo(res, &Tres);
-    transpose_coo(Tres, &res);
+    transpose_coo_acc(res, &Tres);
+    transpose_coo_acc(Tres, &res);
 
     coo_sum_duplicates(res, C);
 
@@ -111,7 +121,7 @@ void coo_mm_multiply_acc(const COO A, const COO B, COO *C){
  * coo - sparse matrix
  * transposed - output transposed coo format sparse matrix (allocated by this routine)
  */
-void transpose_coo(const COO coo, COO *transposed)
+void transpose_coo_acc(const COO coo, COO *transposed)
 {
     // set n to number of rows
     int n = coo->m;
@@ -120,9 +130,15 @@ void transpose_coo(const COO coo, COO *transposed)
     int NZ = coo->NZ;
     int i;
 
+    struct coord *coords = coo->coords;
+    double *coodata = coo->data;
+
     COO sp;
 
     alloc_sparse(m, n, NZ, &sp);
+
+    struct coord *spcoords = sp->coords;
+    double *spdata = sp->data;
 
     // count number of elements in each column
     int count[m];
@@ -134,7 +150,7 @@ void transpose_coo(const COO coo, COO *transposed)
     #pragma acc parallel loop
     for(i = 0; i < NZ; i++){
         #pragma acc atomic update
-        count[coo->coords[i].j]++;
+        count[coords[i].j]++;
     }
 
     // to count number of elements having col smaller 
@@ -155,12 +171,12 @@ void transpose_coo(const COO coo, COO *transposed)
     // this one cannot be easily parallized 
     #pragma acc parallel loop
     for (i = 0; i < NZ; i++){
-        rpos = index[coo->coords[i].j];
-        sp->coords[rpos].i = coo->coords[i].j;
-        sp->coords[rpos].j = coo->coords[i].i;
-        sp->data[rpos] = coo->data[i];
+        rpos = index[coords[i].j];
+        spcoords[rpos].i = coords[i].j;
+        spcoords[rpos].j = coords[i].i;
+        spdata[rpos] = coodata[i];
         #pragma acc atomic update
-        index[coo->coords[i].j]++;
+        index[coords[i].j]++;
     }
     
     // the above method ensures 

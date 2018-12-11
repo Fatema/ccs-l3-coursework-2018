@@ -11,7 +11,7 @@ optimised_sparsemm:
      49, Generating implicit copy(cpos)
      55, Loop is parallelizable
          Loop not vectorized: data dependency
-transpose_coo:
+transpose_coo_acc:
     126, Memory zero idiom, loop replaced by call to __c_mzero4
     130, Loop not vectorized: data dependency
          Loop unrolled 2 times
