@@ -247,30 +247,6 @@ void transpose_csr(const CSR csr, CSR *transposed){
     *transposed = csrt;
 }
 
-void rezero_boolean_arr(const CSR a, const CSR b, int arr[], int *xb){
-    int ip, i, vp, v, kp, k, jp, j;
-    CSR c;
-
-    ip =  c->I[i];
-
-    for (vp = a->I[i]; vp < a->I[i+1]; vp++){
-        v = a->J[vp];
-        for (kp = b->I[v]; kp < b->I[v+1]; kp++){
-            k = b->J[kp];
-            if (arr[k] == 0) {
-                c->J[ip] = k;
-                ip++;
-                xb[k] = 1;
-            }
-        }
-    }
-
-    for (jp = c->I[i]; jp < ip; jp++){
-        j = c->J[jp];
-        xb[j] = 0;
-    }
-}
-
 void csr_mm_multiply(const COO acoo, const COO bcoo, COO *c){
 
     CSR a, b;
