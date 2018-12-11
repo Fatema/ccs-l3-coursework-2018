@@ -20,6 +20,13 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
     ANZ, BNZ, arow, acol, brow, bcol;
     double adata, bdata;
 
+    struct coord *acoord, *bcoord, *rcoord;
+    double *adataarr, *bdataarr, *rdataarr;
+
+    
+    acoord = A->coords;
+    bcoord = B->coords;
+
     ANZ = A->NZ;
     BNZ = B->NZ;
 
@@ -32,25 +39,25 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
     start = omp_get_wtime();
 
     // with this approach sorting A and B is not really necessary, neither is transposing B 
-    #pragma acc data copyin(A,B), copyout(res)
+    #pragma acc data copyin(acoord[0:ANZ],bcoord[0:BNZ], adataarr[0:ANZ], bdataarr[0:BNZ]), copyout(rcoord[0:ANZ * BNZ], rdataarr[0:ANZ * BNZ])
     #pragma acc parallel loop
     for(apos = 0; apos < ANZ; apos++) {
-        arow = A->coords[apos].i;
-        acol = A->coords[apos].j;
-        adata = A->data[apos];
+        arow = acoord[apos].i;
+        acol = acoord[apos].j;
+        adata = adataarr[apos];
         for(bpos = 0; bpos < BNZ; bpos++) {
-            brow = B->coords[bpos].j;
-            bcol = B->coords[bpos].i;
-            bdata = B->data[bpos];
+            brow = bcoord[bpos].j;
+            bcol = bcoord[bpos].i;
+            bdata = bdataarr[bpos];
             // transpose is not really needed for this case
             if (acol == bcol) {
                 #pragma acc atomic
                 {
                     cpos++; // I can use this to keep track if I'm about to run out of allocated memory
                 }
-                res->coords[cpos].i = arow;
-                res->coords[cpos].j = brow;
-                res->data[cpos] =  adata * bdata;
+                rcoord[cpos].i = arow;
+                rcoord[cpos].j = brow;
+                rdataarr[cpos] =  adata * bdata;
             }
         }
     }
@@ -61,8 +68,8 @@ void optimised_sparsemm(const COO A, const COO B, COO *C)
     cpos++;
 
     res->NZ = cpos;
-    res->coords = realloc(res->coords, cpos * sizeof(struct coord));
-    res->data = realloc(res->data, cpos * sizeof(double));
+    res->coords = realloc(rcoord, cpos * sizeof(struct coord));
+    res->data = realloc(rdataarr, cpos * sizeof(double));
 
     // the removing of duplicates can be done in merge sort style
     // sort the result
