@@ -1,6 +1,7 @@
 CFLAGS = -O3 -march=native  -D_GNU_SOURCE -pg
 LDFLAGS = -lm
 CC = gcc
+INTEL = icc -O0 -g -debug all
 VECREPORT = -O3 -march=native  -D_GNU_SOURCE -ftree-vectorize
 GPROF = -pg
 
@@ -28,7 +29,7 @@ check: sparsemm
 	./sparsemm CHECK
 
 sparsemm: sparsemm.c $(OBJ)
-	$(CC) -o $@ $< $(LDFLAGS) $(OBJ) 
+	$(INTEL) -o $@ $< $(LDFLAGS) $(OBJ) 
 
 # test: test.c $(OBJ)
 # 	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDFLAGS)
@@ -37,7 +38,7 @@ test: test.c $(OBJ)
 	$(ACC) -o $@ $< $(LDFLAGS) $(OBJ)
 
 %.o: %.c $(HEADER)
-	$(CC) -c -o $@ $<
+	$(INTEL) -c -o $@ $<
 
 performance: sparsemm.c $(OBJ)
 	$(CC) $(CFLAGS) -o sparsemm $< $(OBJ) $(LDFLAGS) $(LIKWID)
