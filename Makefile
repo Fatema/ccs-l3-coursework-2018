@@ -1,5 +1,5 @@
 CFLAGS = -O3 -march=native  -D_GNU_SOURCE -pg
-LDFLAGS = -lm -Mprof=lines 
+LDFLAGS = -lm
 CC = gcc
 VECREPORT = -O3 -march=native  -D_GNU_SOURCE -ftree-vectorize
 GPROF = -pg
