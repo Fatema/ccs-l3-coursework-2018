@@ -332,6 +332,10 @@ void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
     csr_mm_multiply(a, b, &ctemp);
 
     convert_csr_to_coo(ctemp, c);
+
+    free_sparse_csr(&a);
+    free_sparse_csr(&b);
+    free_sparse_csr(&ctemp);
 }
 
 void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
@@ -462,8 +466,13 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     int xb[r];
     double x[r];
 
+    int anz, bnz;
+
+    anz = a->NZ;
+    bnz = b->NZ;
+
     // max value for ctemp size
-    int ibot = p * r;
+    int ibot = (anz + bnz) * 3;
 
     alloc_sparse_csr(p, r, ibot, &ctemp);
 
@@ -492,6 +501,13 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
             }
         }
 
+        // to allow for a buffer of data
+        if (ip >= ibot - p){
+            ibot += ibot;
+            ctemp->J = realloc(ctemp->J, ibot * sizeof(int));
+            ctemp->data = realloc(ctemp->data, ibot * sizeof(double));
+        }
+
         for (vp = ctemp->I[i]; vp < ip; vp++) {
             v = ctemp->J[vp];
             ctemp->data[vp] = x[v];
@@ -501,6 +517,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     ctemp->I[p + 1] = ip;
     ctemp->J = realloc(ctemp->J, ip * sizeof(int));
     ctemp->data = realloc(ctemp->data, ip * sizeof(double));
+
     ctemp->NZ = ip;
 
     *c = ctemp;

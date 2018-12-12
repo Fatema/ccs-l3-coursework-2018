@@ -199,7 +199,7 @@ void convert_dense_to_sparse(const double *dense, int m, int n,
  */
 void convert_csr_to_coo(const CSR csr, COO *coo) {
     COO sp;
-    int m, NZ, i, n, r, nrow, row;
+    int m, NZ, i, n, r;
 
     m = csr->m;
     n = csr->n;
@@ -210,12 +210,10 @@ void convert_csr_to_coo(const CSR csr, COO *coo) {
 
     // cannot be vectorized
     for(i = 0; i < m; i++){
-        nrow = csr->I[i + 1] - csr->I[i];
-        row = csr->I[i];
-        for(r = 0; r < nrow; r++){
-            sp->coords[row + r].i = i;
-            sp->coords[row + r].j = csr->J[row + r];
-            sp->data[row + r] = csr->data[row + r];
+        for(r = csr->I[i]; r < csr->I[i + 1]; r++){
+            sp->coords[r].i = i;
+            sp->coords[r].j = csr->J[r];
+            sp->data[r] = csr->data[r];
         }
     }
 
@@ -373,12 +371,12 @@ void write_sparse_csr(FILE *f, CSR sp)
 {
     int i;
     fprintf(f, "%d %d\n", sp->m, sp->NZ);
-    for (i = 0; i < sp->m + 1; i++) {
-        fprintf(f, "%d ", sp->I[i]);
-    }
-    for (i = 0; i < sp->NZ; i++) {
-        fprintf(f, "%d ", sp->J[i]);
-    }
+//    for (i = 0; i < sp->m + 1; i++) {
+//        fprintf(f, "%d ", sp->I[i]);
+//    }
+//    for (i = 0; i < sp->NZ; i++) {
+//        fprintf(f, "%d ", sp->J[i]);
+//    }
     for (i = 0; i < sp->NZ; i++) {
         fprintf(f, "%.15g ", sp->data[i]);
     }
