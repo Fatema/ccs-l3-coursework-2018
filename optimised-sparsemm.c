@@ -326,11 +326,14 @@ void csr_transpose(const CSR csr, CSR *transposed) {
 void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
     CSR a, b, ctemp;
 
+    printf("converting %d", 1);
     convert_coo_to_csr(acoo, &a);
     convert_coo_to_csr(bcoo, &b);
 
+    printf("doing the multiplicaton %d", 2);
     csr_mm_multiply(a, b, &ctemp);
 
+    printf("converting %d", 3);
     convert_csr_to_coo(ctemp, c);
 }
 
@@ -373,7 +376,7 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     csr_transpose(abc, &abc);
     csr_transpose(def, &def);
 
-    printf("doing the multiplication %d", 4);
+    printf("doing the multiplicaton %d", 4);
     csr_mm_multiply(abc, def, &otemp);
 
     convert_csr_to_coo(otemp, O);
