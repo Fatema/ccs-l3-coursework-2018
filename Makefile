@@ -29,7 +29,7 @@ check: sparsemm
 	./sparsemm CHECK
 
 sparsemm: sparsemm.c $(OBJ)
-	$(CC) -o $@ $< $(LDFLAGS) $(OBJ) 
+	$(ACC) -o $@ $< $(LDFLAGS) $(OBJ) 
 
 # test: test.c $(OBJ)
 # 	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDFLAGS)
@@ -38,7 +38,7 @@ test: test.c $(OBJ)
 	$(ACC) -o $@ $< $(LDFLAGS) $(OBJ)
 
 %.o: %.c $(HEADER)
-	$(CC) -c -o $@ $<
+	$(ACC) -c -o $@ $<
 
 performance: sparsemm.c $(OBJ)
 	$(CC) $(CFLAGS) -o sparsemm $< $(OBJ) $(LDFLAGS) $(LIKWID)
