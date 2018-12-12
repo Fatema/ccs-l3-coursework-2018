@@ -240,7 +240,7 @@ void convert_coo_to_csr(const COO coo, CSR *csr) {
         sp->I[coo->coords[i].i + 1]++;
     }
 
-    int p[m];
+    int p[m + 1];
     q = 0;
     for (i = 0; i < m + 1; i++) {
         p[i] = q;

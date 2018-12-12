@@ -298,7 +298,7 @@ void csr_transpose(const CSR csr, CSR *transposed) {
 
     // set a pointer for the cumulative sum of the rows index
     // this is used to shift the cumulative sum of the transposed row index
-    int p[n];
+    int p[n + 1];
     q = 0;
     for (i = 0; i < n + 1; i++) {
         p[i] = q;
