@@ -343,6 +343,7 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     CSR otemp, abc, def; // temporary matrix to hold o data and the sum results
 
     // convert the matrices to csr format (rows will be sorted after the conversion)
+    printf("converting %d", 1);
     convert_coo_to_csr(A, &acsr);
     convert_coo_to_csr(B, &bcsr);
     convert_coo_to_csr(C, &ccsr);
@@ -353,7 +354,7 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     // the sum depends on the matrices being fully sorted so use transpose to sort the columns
     // transposing won't affect the result of the sum
     // (it could affect the parallelisation of the sum process)
-
+    printf("transposing %d", 2);
     csr_transpose(acsr, &acsr);
     csr_transpose(bcsr, &bcsr);
     csr_transpose(ccsr, &ccsr);
@@ -361,6 +362,7 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     csr_transpose(ecsr, &ecsr);
     csr_transpose(fcsr, &fcsr);
 
+    printf("doing the sum %d", 3);
     csr_sum(acsr, bcsr, &abc);
     csr_sum(abc, ccsr, &abc);
 
@@ -371,10 +373,12 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     csr_transpose(abc, &abc);
     csr_transpose(def, &def);
 
+    printf("doing the multiplication %d", 4);
     csr_mm_multiply(abc, def, &otemp);
 
     convert_csr_to_coo(otemp, O);
 
+    printf("freeing memory %d", 5);
     free_sparse_csr(&acsr);
     free_sparse_csr(&bcsr);
     free_sparse_csr(&ccsr);
