@@ -2,7 +2,6 @@
 #SBATCH --job-name="mmgw12-csr-sum-mm"
 #SBATCH -o mm_sum
 #SBATCH -e mm_sum.err
-#SBATCH --nodes=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mail-user=fatema.alkhanaizi@durham.ac.uk
 #SBATCH --mail-type=ALL

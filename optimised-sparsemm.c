@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <stdlib.h>
+#include <omp.h>
 
 void coo_sum_duplicates(const COO coo, COO *nodups);
 
