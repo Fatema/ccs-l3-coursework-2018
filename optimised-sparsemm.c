@@ -34,7 +34,7 @@ void basic_sparsemm_sum(const COO, const COO, const COO,
  * this is based on https://www.geeksforgeeks.org/operations-sparse-matrices/ 
  */
 void optimised_sparsemm(const COO A, const COO B, COO *C) {
-    coo2csr_mm_multiply(A, B, C);
+    return coo2csr_mm_multiply(A, B, C);
 }
 
 /* Computes O = (A + B + C) (D + E + F).
@@ -43,7 +43,7 @@ void optimised_sparsemm(const COO A, const COO B, COO *C) {
 void optimised_sparsemm_sum(const COO A, const COO B, const COO C,
                             const COO D, const COO E, const COO F,
                             COO *O) {
-    coo2csr_mm_multiply_sum(A, B, C, D, E, F, O);
+    return coo2csr_mm_multiply_sum(A, B, C, D, E, F, O);
 }
 
 
@@ -324,16 +324,7 @@ void csr_transpose(const CSR csr, CSR *transposed) {
 }
 
 void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
-
     CSR a, b, ctemp;
-
-    int r, p, q; // matrices size
-    r = bcoo->n; // b = q x r
-    p = acoo->m; // a = p x q
-    q = acoo->n; // must be equal to b->m
-
-    alloc_sparse_csr(p, q, acoo->NZ, &a);
-    alloc_sparse_csr(q, r, bcoo->NZ, &b);
 
     convert_coo_to_csr(acoo, &a);
     convert_coo_to_csr(bcoo, &b);
@@ -341,9 +332,6 @@ void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
     csr_mm_multiply(a, b, &ctemp);
 
     convert_csr_to_coo(ctemp, c);
-
-    free_sparse_csr(&a);
-    free_sparse_csr(&b);
 }
 
 void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
@@ -353,20 +341,6 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     CSR acsr, bcsr, ccsr, dcsr, ecsr, fcsr;
 
     CSR otemp, abc, def; // temporary matrix to hold o data and the sum results
-
-    int r, p, q; // matrices size
-
-    p = A->m; // abc = p x q
-    q = A->n; // must be equal to def->m
-    r = D->n; // def = q x r
-
-    // allocate memory for the csr format
-    alloc_sparse_csr(p, q, A->NZ, &acsr);
-    alloc_sparse_csr(p, q, B->NZ, &bcsr);
-    alloc_sparse_csr(p, q, C->NZ, &ccsr);
-    alloc_sparse_csr(q, r, D->NZ, &dcsr);
-    alloc_sparse_csr(q, r, E->NZ, &ecsr);
-    alloc_sparse_csr(q, r, F->NZ, &fcsr);
 
     // convert the matrices to csr format (rows will be sorted after the conversion)
     convert_coo_to_csr(A, &acsr);
@@ -400,28 +374,37 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     csr_mm_multiply(abc, def, &otemp);
 
     convert_csr_to_coo(otemp, O);
+
+    free_sparse_csr(&acsr);
+    free_sparse_csr(&bcsr);
+    free_sparse_csr(&ccsr);
+    free_sparse_csr(&dcsr);
+    free_sparse_csr(&ecsr);
+    free_sparse_csr(&fcsr);
+    free_sparse_csr(&abc);
+    free_sparse_csr(&def);
+    free_sparse_csr(&otemp);
 }
 
 void csr_sum(const CSR A, const CSR B, CSR *sum) {
     CSR temp;
 
-    int m, n, nnz, i, ai, nai, bi, nbi, ncol;
+    int m, n, i, ai, nai, bi, nbi, ncol, j;
 
     m = A->m;
     n = A->n;
 
     alloc_sparse_csr(m, n, A->NZ + B->NZ, &temp);
 
+    ncol = 0;
     for (i = 0; i < m; i++) {
         ai = A->I[i];
-        nai = A->I[i + 1] - A->I[i];
+        nai = A->I[i + 1];
 
         bi = B->I[i];
-        nbi = B->I[i + 1] - B->I[i];
+        nbi = B->I[i + 1];
 
-        ncol = 0;
-
-        while (ai + bi < nai + nbi) {
+        while (ai < nai && bi < nbi) {
             if (A->J[ai] < B->J[bi]) {
                 temp->J[ncol] = A->J[ai];
                 temp->data[ncol] = A->data[ai];
@@ -429,7 +412,7 @@ void csr_sum(const CSR A, const CSR B, CSR *sum) {
                 ai++;
             } else if (A->J[ai] == B->J[bi]) {
                 temp->J[ncol] = A->J[ai];
-                temp->data[ncol] = A->data[ai] + B->J[bi];
+                temp->data[ncol] = A->data[ai] + B->data[bi];
                 ncol++;
                 ai++;
                 bi++;
@@ -441,23 +424,32 @@ void csr_sum(const CSR A, const CSR B, CSR *sum) {
             }
         }
 
+        // add the remaining elements
+        for(j = ai; j < nai; j++){
+            temp->J[ncol] = A->J[j];
+            temp->data[ncol] = A->data[j];
+            ncol++;
+        }
+
+        // add the remaining elements
+        for(j = bi; j < nbi; j++){
+            temp->J[ncol] = B->J[j];
+            temp->data[ncol] = B->data[j];
+            ncol++;
+        }
+
         temp->I[i + 1] = ncol;
     }
 
-    for (i = 0; i < m; i++) {
-        temp->I[i + 1] += temp->I[i];
-    }
+    temp->J = realloc(temp->J, ncol * sizeof(int));
+    temp->data = realloc(temp->data, ncol * sizeof(double));
 
-    nnz = temp->I[m];
-
-    temp->J = realloc(temp->J, nnz * sizeof(int));
-    temp->data = realloc(temp->data, nnz * sizeof(double));
-
-    temp->NZ = nnz;
+    temp->NZ = ncol;
 
     *sum = temp;
 }
 
+// there is something wrong here needs to be traced
 void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     CSR ctemp; // temporary matrix to hold c data
 
@@ -467,10 +459,12 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     p = a->m; // a = p x q
     q = a->n; // must be equal to b->m
 
+    // vectors of length r that will hold integer and floating point data
     int xb[r];
-    double x[r]; // vectors of length r that will hold integer and floating point data
+    double x[r];
 
-    int ibot = p * r; // intial value for ctemp size
+    // max value for ctemp size
+    int ibot = p * r;
 
     alloc_sparse_csr(p, r, ibot, &ctemp);
 
@@ -478,11 +472,11 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
 
 
     for (v = 0; v < r; v++) {
-        xb[v] = 0;
-        x[v] = 0;
+        xb[v] = -1;
+        x[v] = -1;
     }
 
-    for (i = 0; i < p; i++) {
+    for (i = 0; i < p + 1; i++) {
         ctemp->I[i] = ip;
         for (jp = a->I[i]; jp < a->I[i + 1]; jp++) {
             j = a->J[jp];

@@ -20,27 +20,28 @@ int main(int argc, char **argv)
         y[j] = -j; 
     }
 
-    printf("%d", x[9]);
-
     m = 50;
-    k = 20;
+    k = 30;
 
     random_matrix(m, k, 0.1, &A);
-    optimised_sparsemm(A, A, &C);
-    coo_mm_multiply_acc(A, A, &AB);
+//    print_sparse(A);
+
+//    transpose_coo_acc(A, &B);
+//    print_sparse(B);
+
+    optimised_sparsemm_sum(A, A, A , A, A, A, &C);
+//    coo_mm_multiply_acc(A, A, &AB);
     coo_mm_multiply(A, A, &B);
     // // random_matrix(m, k, 0.3, &B);
 
-    // // transpose_coo_acc(B, &AT);
 
     // convert_coo_to_csr(A, &csr);
     // csr_transpose(csr, &csrt);
     // convert_csr_to_coo(csrt, &AT);
 
-    print_sparse(A);
     print_sparse(C);
     print_sparse(B);
-    print_sparse(AB);
+//    print_sparse(AB);
     // print_sparse_csr(csr);
     // print_sparse_csr(csrt);
     // print_sparse(AT);
@@ -49,7 +50,7 @@ int main(int argc, char **argv)
     free_sparse(&A);
      free_sparse(&B);
      free_sparse(&C);
-     free_sparse(&AB);
+//     free_sparse(&AB);
     // free_sparse_csr(&csr);
     // free_sparse_csr(&csrt);
 

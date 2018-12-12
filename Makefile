@@ -7,7 +7,7 @@ GPROF = -pg
 
 LIKWID = -mfma -DLIKWID_PERFMON -I$LIKWID_PATH/include -L$LIKWID_PATH/lib -llikwid -lpthread -lm
 
-ACC = pgcc -acc -Minfo -O3
+ACC = pgcc -acc -Minfo -O3 -ta=multicore
 
 OBJ = utils.o optimised-sparsemm.o basic-sparsemm.o
 HEADER = utils.h

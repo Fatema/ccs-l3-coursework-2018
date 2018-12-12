@@ -226,7 +226,7 @@ void convert_csr_to_coo(const CSR csr, COO *coo) {
  * this code is taken from http://crd-legacy.lbl.gov/~yunhe/cs267/final/source/utils/convert/matrix_io.c 
 */
 void convert_coo_to_csr(const COO coo, CSR *csr) {
-    int m, n, NZ, i, l;
+    int m, n, NZ, i, l, q;
     CSR sp;
 
     m = coo->m;
@@ -240,21 +240,20 @@ void convert_coo_to_csr(const COO coo, CSR *csr) {
         sp->I[coo->coords[i].i + 1]++;
     }
 
+    int p[m];
+    q = 0;
     for (i = 0; i < m + 1; i++) {
-        sp->I[i + 1] += sp->I[i];
+        p[i] = q;
+        q += sp->I[i];
+        sp->I[i] = p[i];
     }
 
-     /* go through the structure  once more. Fill in output matrix. */
+     /* go through the structure once more. Fill in output matrix. */
     for (l = 0; l < NZ; l++){
-        i = sp->I[coo->coords[l].i];
+        i = sp->I[coo->coords[l].i + 1];
         sp->data[i] = coo->data[l];
         sp->J[i] = coo->coords[l].j;
-        sp->I[coo->coords[l].i]++;
-    }
-
-    /* shift back row_start */
-    for (i = n; i > 0; i--){
-        sp->I[i] = sp->I[i - 1];
+        sp->I[coo->coords[l].i + 1]++;
     }
 
     sp->I[0] = 0;
@@ -373,7 +372,7 @@ void write_sparse(FILE *f, COO sp)
 void write_sparse_csr(FILE *f, CSR sp)
 {
     int i;
-    printf(f, "%d %d\n", sp->m, sp->NZ);
+    fprintf(f, "%d %d\n", sp->m, sp->NZ);
     for (i = 0; i < sp->m + 1; i++) {
         fprintf(f, "%d ", sp->I[i]);
     }
@@ -381,7 +380,7 @@ void write_sparse_csr(FILE *f, CSR sp)
         fprintf(f, "%d ", sp->J[i]);
     }
     for (i = 0; i < sp->NZ; i++) {
-        fprintf(f, "%f ", sp->data[i]);
+        fprintf(f, "%.15g ", sp->data[i]);
     }
 }
 
