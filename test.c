@@ -22,11 +22,11 @@ int main(int argc, char **argv)
 
     printf("%d", x[9]);
 
-    m = 5;
-    k = 5;
+    m = 50;
+    k = 20;
 
     random_matrix(m, k, 0.1, &A);
-    csr_mm_multiply(A, A, &C);
+    optimised_sparsemm(A, A, &C);
     coo_mm_multiply_acc(A, A, &AB);
     coo_mm_multiply(A, A, &B);
     // // random_matrix(m, k, 0.3, &B);

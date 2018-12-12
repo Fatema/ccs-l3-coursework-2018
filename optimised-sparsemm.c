@@ -344,7 +344,6 @@ void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
 
     free_sparse_csr(&a);
     free_sparse_csr(&b);
-    free_sparse_csr(&ctemp);
 }
 
 void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
@@ -399,6 +398,8 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     csr_transpose(def, &def);
 
     csr_mm_multiply(abc, def, &otemp);
+
+    convert_csr_to_coo(otemp, O);
 }
 
 void csr_sum(const CSR A, const CSR B, CSR *sum) {
