@@ -2,10 +2,11 @@
 #SBATCH --job-name="mmgw12-csr-mm"
 #SBATCH -o mm
 #SBATCH -e mm.err
+#SBATCH --nodes=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mail-user=fatema.alkhanaizi@durham.ac.uk
 #SBATCH --mail-type=ALL
-#SBATCH -p par6.q
+#SBATCH -p par7.q
 
 source /etc/profile.d/modules.sh
 
