@@ -4,7 +4,7 @@
 #SBATCH -e mm_sum.err
 #SBATCH --exclusive
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=24
+#SBATCH --cpus-per-task=4
 #SBATCH --mail-user=fatema.alkhanaizi@durham.ac.uk
 #SBATCH --mail-type=ALL
 #SBATCH -p par6.q
