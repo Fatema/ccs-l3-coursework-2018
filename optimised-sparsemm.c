@@ -1,6 +1,5 @@
 #include "utils.h"
 #include <stdlib.h>
-#include <omp.h>
 
 void coo_sum_duplicates(const COO coo, COO *nodups);
 
@@ -471,14 +470,15 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     int xb[r];
     double x[r];
 
-    int anz, bnz;
+    int anz, bnz, ibot;
 
     anz = a->NZ;
     bnz = b->NZ;
 
     // max value for ctemp size
-    int ibot = (anz + bnz) * 3;
+    ibot = (anz + bnz) * 3;
 
+    printf("allocating memory for ctemp %d %d %d", p, r, ibot);
     alloc_sparse_csr(p, r, ibot, &ctemp);
 
     ip = 0; // keeps track of value positions for matrix c
