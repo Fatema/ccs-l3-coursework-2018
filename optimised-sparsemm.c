@@ -478,7 +478,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
 
     ip = 0; // keeps track of value positions for matrix c
 
-
+    #pragma acc parallel loop
     for (v = 0; v < r; v++) {
         xb[v] = -1;
         x[v] = -1;
@@ -510,6 +510,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
             ctemp->data = realloc(ctemp->data, ibot * sizeof(double));
         }
 
+        #pragma acc parallel loop
         for (vp = ctemp->I[i]; vp < ip; vp++) {
             v = ctemp->J[vp];
             ctemp->data[vp] = x[v];
