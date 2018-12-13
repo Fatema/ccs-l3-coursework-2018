@@ -371,15 +371,15 @@ void write_sparse_csr(FILE *f, CSR sp)
 {
     int i;
     fprintf(f, "%d %d\n", sp->m, sp->NZ);
-//    for (i = 0; i < sp->m + 1; i++) {
-//        fprintf(f, "%d ", sp->I[i]);
-//    }
-//    for (i = 0; i < sp->NZ; i++) {
-//        fprintf(f, "%d ", sp->J[i]);
-//    }
-    for (i = 0; i < sp->NZ; i++) {
-        fprintf(f, "%.15g ", sp->data[i]);
+    for (i = 0; i < sp->m + 1; i++) {
+        fprintf(f, "%d ", sp->I[i]);
     }
+    for (i = 0; i < sp->NZ; i++) {
+        fprintf(f, "%d ", sp->J[i]);
+    }
+//    for (i = 0; i < sp->NZ; i++) {
+//        fprintf(f, "%.15g ", sp->data[i]);
+//    }
 }
 
 /*
