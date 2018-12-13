@@ -34,7 +34,7 @@ void basic_sparsemm_sum(const COO, const COO, const COO,
  * this is based on https://www.geeksforgeeks.org/operations-sparse-matrices/ 
  */
 void optimised_sparsemm(const COO A, const COO B, COO *C) {
-    return coo_mm_multiply(A, B, C);
+    return coo2csr_mm_multiply(A, B, C);
 }
 
 /* Computes O = (A + B + C) (D + E + F).

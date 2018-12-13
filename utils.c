@@ -197,7 +197,7 @@ void convert_dense_to_sparse(const double *dense, int m, int n,
  * n - number of columns
  * sparse - output sparse matrix (allocated by this routine)
  */
-void convert_csr_to_coo(const CSR csr, COO *coo) {
+void convert_csr_to_coo(CSR csr, COO *coo) {
     printf("csr to coo %d \n", 1);
     COO coosp;
     int m, NZ, i, n, r;
