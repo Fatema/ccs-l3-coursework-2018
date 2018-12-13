@@ -29,13 +29,13 @@ check: sparsemm
 	./sparsemm CHECK
 
 sparsemm: sparsemm.c $(OBJ)
-	$(CC) -o $@ $< $(LDFLAGS) $(OBJ)
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(OBJ)
 
 test: test.c $(OBJ)
-	$(ACC) -o $@ $< $(LDFLAGS) $(OBJ)
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(OBJ)
 
 %.o: %.c $(HEADER)
-	$(CC) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 vecreport: sparsemm.c $(OBJ)
 	$(CC) $(VECREPORT) -o sparsemm $< $(OBJ) $(LDFLAGS)
