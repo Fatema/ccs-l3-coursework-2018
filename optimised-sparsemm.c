@@ -493,10 +493,10 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     }
 
     printf("starting loop %d\n", 2);
-    for (i = 0; i < p + 1; i++) {
+    for (i = 0; i < p; i++) {
         ctemp->I[i] = ip;
 //        printf("ibot value %d\n", ibot);
-        printf("going through index %d\n", i);
+        printf("going through index %d p %d\n", i, p);
         for (jp = a->I[i]; jp < a->I[i + 1]; jp++) {
             j = a->J[jp];
             printf("doing jp %d j %d\n", jp, j);
