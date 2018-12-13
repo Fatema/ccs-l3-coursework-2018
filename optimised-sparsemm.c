@@ -484,21 +484,39 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
         x[v] = -1;
     }
 
+    // direct access to a and b arrays
+    int *ai, *aj, *bi, *bj, *ci, *cj;
+    double *adata, *bdata, *cdata;
+
+    ai = a->I;
+    bi = b->I;
+    ci = ctemp->I;
+
+    aj = a->J;
+    bj = b->J;
+    cj = ctemp->J;
+
+    adata = a->data;
+    bdata = b->data;
+    cdata = ctemp->data;
+
+
+
     for (i = 0; i < p + 1; i++) {
-        ctemp->I[i] = ip;
-        for (jp = a->I[i]; jp < a->I[i + 1]; jp++) {
-            j = a->J[jp];
+        ci[i] = ip;
+        for (jp = ai[i]; jp < ai[i + 1]; jp++) {
+            j = aj[jp];
             #pragma acc parallel loop
-            for (kp = b->I[j]; kp < b->I[j + 1]; kp++) {
-                k = b->J[kp];
+            for (kp = bi[j]; kp < bi[j + 1]; kp++) {
+                k = bj[kp];
                 if (xb[k] != i) {
-                    ctemp->J[ip] = k;
+                    cj[ip] = k;
                     #pragma acc atomic update
                     ip++;
                     xb[k] = i;
-                    x[k] = a->data[jp] * b->data[kp];
+                    x[k] = adata[jp] * bdata[kp];
                 } else {
-                    x[k] += a->data[jp] * b->data[kp];
+                    x[k] += adata[jp] * bdata[kp];
                 }
             }
         }
@@ -506,20 +524,22 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
         // to allow for a buffer of data
         if (ip >= ibot - p){
             ibot += ibot;
-            ctemp->J = realloc(ctemp->J, ibot * sizeof(int));
-            ctemp->data = realloc(ctemp->data, ibot * sizeof(double));
+            cj = realloc(cj, ibot * sizeof(int));
+            cdata = realloc(cdata, ibot * sizeof(double));
         }
 
         #pragma acc parallel loop
-        for (vp = ctemp->I[i]; vp < ip; vp++) {
-            v = ctemp->J[vp];
-            ctemp->data[vp] = x[v];
+        for (vp = ci[i]; vp < ip; vp++) {
+            v = cj[vp];
+            cdata[vp] = x[v];
         }
     }
 
+    ctemp->I = ci;
+
     ctemp->I[p + 1] = ip;
-    ctemp->J = realloc(ctemp->J, ip * sizeof(int));
-    ctemp->data = realloc(ctemp->data, ip * sizeof(double));
+    ctemp->J = realloc(cj, ip * sizeof(int));
+    ctemp->data = realloc(cdata, ip * sizeof(double));
 
     ctemp->NZ = ip;
 
