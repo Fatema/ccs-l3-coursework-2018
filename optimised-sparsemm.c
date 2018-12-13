@@ -534,7 +534,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
 
     printf("done with loop %d\n", 2);
 
-    ctemp->I[p + 1] = ip;
+    ctemp->I[p] = ip;
     ctemp->J = realloc(ctemp->J, ip * sizeof(int));
     ctemp->data = realloc(ctemp->data, ip * sizeof(double));
 
