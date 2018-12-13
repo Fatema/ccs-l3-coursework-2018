@@ -324,22 +324,24 @@ void csr_transpose(const CSR csr, CSR *transposed) {
 }
 
 void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
-    CSR a, b, ccsr;
+    CSR a, b, ctemp;
 
     printf("converting coo to csr %d\n", 1);
     convert_coo_to_csr(acoo, &a);
     convert_coo_to_csr(bcoo, &b);
 
-    printf("multiply %d\n", 2);
-    csr_mm_multiply(a, b, &ccsr);
+    printf("multiply the matrices %d\n", 2);
+    csr_mm_multiply(a, b, &ctemp);
 
-    printf("converting coo to csr %d\n", 3);
-    convert_csr_to_coo(ccsr, c);
+    printf("converting csr to coo %d\n", 3);
+    convert_csr_to_coo(ctemp, c);
 
+    printf("freeing memory %d\n", 4);
     free_sparse_csr(&a);
+    printf("freeing memory %d\n", 4);
     free_sparse_csr(&b);
+    printf("freeing memory %d\n", 4);
 //    free_sparse_csr(&ctemp);
-    printf("done %d\n", 4);
 }
 
 void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
@@ -382,20 +384,25 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     csr_transpose(abc, &abc);
     csr_transpose(def, &def);
 
-    printf("fucking multiply %d\n", 1);
+    printf("multiply the matrices %d\n", 2);
     csr_mm_multiply(abc, def, &otemp);
 
     convert_csr_to_coo(otemp, O);
 
+    printf("freeing memory %d\n", 4);
     free_sparse_csr(&acsr);
     free_sparse_csr(&bcsr);
     free_sparse_csr(&ccsr);
+    printf("freeing memory %d\n", 4);
     free_sparse_csr(&dcsr);
     free_sparse_csr(&ecsr);
     free_sparse_csr(&fcsr);
+    printf("freeing memory %d\n", 4);
     free_sparse_csr(&abc);
     free_sparse_csr(&def);
+    printf("freeing memory %d\n", 4);
 //    free_sparse_csr(&otemp);
+    printf("done %d\n", 4);
 }
 
 void csr_sum(const CSR A, const CSR B, CSR *sum) {
@@ -482,6 +489,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     // max value for ctemp size
     ibot = (anz + bnz) * 3;
 
+    printf("allocating memory for ctemp %d %d %d \n", p, r, ibot);
     alloc_sparse_csr(p, r, ibot, &ctemp);
 
     ip = 0; // keeps track of value positions for matrix c
