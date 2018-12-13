@@ -338,6 +338,7 @@ void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
 
     printf("freeing memory %d\n", 4);
     free_sparse_csr(&a);
+    printf("freeing memory %d\n", 4);
     free_sparse_csr(&b);
 //    free_sparse_csr(&ctemp);
 }
