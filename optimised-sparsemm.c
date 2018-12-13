@@ -517,8 +517,11 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
             j = aj[jp];
             printf("doing jp %d\n", jp);
             for (kp = bi[j]; kp < bi[j + 1]; kp++) {
+                printf("index kp %d\n", kp);
                 k = bj[kp];
+                printf("index k %d\n", k);
                 if (xb[k] != i) {
+                    printf("going to multiply at ip=%d k=%d i=%d jp=%d kp=%d\n", ip, k, i, jp, kp);
                     cj[ip] = k;
                     ip++;
                     xb[k] = i;
