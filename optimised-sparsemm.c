@@ -337,9 +337,9 @@ void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
     convert_csr_to_coo(ctemp, c);
 
 //    printf("freeing memory %d\n", 4);
-//    free_sparse_csr(&a);
+    free_sparse_csr(&a);
 //    printf("freeing memory %d\n", 4);
-//    free_sparse_csr(&b);
+    free_sparse_csr(&b);
 //    printf("freeing memory %d\n", 4);
 //    free_sparse_csr(&ctemp);
     printf("done %d\n", 4);
@@ -534,7 +534,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
 
 //    printf("done with loop %d\n", 2);
 
-    ctemp->I[p + 1] = ip;
+    ctemp->I[p] = ip;
 //    printf("realloc %d\n", 3);
     ctemp->J = realloc(ctemp->J, ip * sizeof(int));
 //    printf("realloc %d\n", 3);
