@@ -492,43 +492,27 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
         x[v] = -1;
     }
 
-    // direct access to a and b arrays
-    int *ai, *aj, *bi, *bj, *ci, *cj;
-    double *adata, *bdata, *cdata;
-
-    ai = a->I;
-    bi = b->I;
-    ci = ctemp->I;
-
-    aj = a->J;
-    bj = b->J;
-    cj = ctemp->J;
-
-    adata = a->data;
-    bdata = b->data;
-    cdata = ctemp->data;
-
     printf("starting loop %d\n", 2);
     for (i = 0; i < p + 1; i++) {
-        ci[i] = ip;
+        ctemp->I[i] = ip;
         printf("ibot value %d\n", ibot);
         printf("going through index %d\n", i);
-        for (jp = ai[i]; jp < ai[i + 1]; jp++) {
-            j = aj[jp];
+        for (jp = a->I[i]; jp < a->I[i + 1]; jp++) {
+            j = a->J[jp];
             printf("doing jp %d j %d\n", jp, j);
-            printf("doing bi limit %d\n", q);
-            for (kp = bi[j]; kp < bi[j + 1]; kp++) {
+            printf("doing bi limit %d\n", b->I[q]);
+            for (kp = b->I[j]; kp < b->I[j + 1]; kp++) {
                 printf("index kp %d\n", kp);
-                k = bj[kp];
+                k = b->J[kp];
                 printf("index k %d\n", k);
                 if (xb[k] != i) {
                     printf("going to multiply at ip=%d k=%d i=%d jp=%d kp=%d\n", ip, k, i, jp, kp);
-                    cj[ip] = k;
+                    ctemp->J[ip] = k;
                     ip++;
                     xb[k] = i;
-                    x[k] = adata[jp] * bdata[kp];
+                    x[k] = a->data[jp] * b->data[kp];
                 } else {
-                    x[k] += adata[jp] * bdata[kp];
+                    x[k] += a->data[jp] * b->data[kp];
                 }
             }
         }
@@ -537,24 +521,22 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
         if (ip >= ibot - p){
             printf("reallocating memory %d\n", i);
             ibot += ibot;
-            cj = realloc(cj, ibot * sizeof(int));
-            cdata = realloc(cdata, ibot * sizeof(double));
+            ctemp->J = realloc(ctemp->J, ibot * sizeof(int));
+            ctemp->data = realloc(ctemp->data, ibot * sizeof(double));
         }
 
         printf("putting values in array for index %d\n", i);
-        for (vp = ci[i]; vp < ip; vp++) {
-            v = cj[vp];
-            cdata[vp] = x[v];
+        for (vp = ctemp->I[i]; vp < ip; vp++) {
+            v = ctemp->J[vp];
+            ctemp->data[vp] = x[v];
         }
     }
 
     printf("done with loop %d\n", 2);
 
-    ctemp->I = ci;
-
     ctemp->I[p + 1] = ip;
-    ctemp->J = realloc(cj, ip * sizeof(int));
-    ctemp->data = realloc(cdata, ip * sizeof(double));
+    ctemp->J = realloc(ctemp->J, ip * sizeof(int));
+    ctemp->data = realloc(ctemp->data, ip * sizeof(double));
 
     ctemp->NZ = ip;
 
