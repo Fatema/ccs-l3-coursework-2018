@@ -354,6 +354,7 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     CSR otemp, abc, def; // temporary matrix to hold o data and the sum results
 
     // convert the matrices to csr format (rows will be sorted after the conversion)
+    printf("converting coo to csr %d\n", 1);
     convert_coo_to_csr(A, &acsr);
     convert_coo_to_csr(B, &bcsr);
     convert_coo_to_csr(C, &ccsr);
@@ -381,19 +382,25 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     csr_transpose(abc, &abc);
     csr_transpose(def, &def);
 
+    printf("multiply the matrices %d\n", 2);
     csr_mm_multiply(abc, def, &otemp);
 
     convert_csr_to_coo(otemp, O);
 
+    printf("freeing memory %d\n", 4);
     free_sparse_csr(&acsr);
     free_sparse_csr(&bcsr);
     free_sparse_csr(&ccsr);
+    printf("freeing memory %d\n", 4);
     free_sparse_csr(&dcsr);
     free_sparse_csr(&ecsr);
     free_sparse_csr(&fcsr);
+    printf("freeing memory %d\n", 4);
     free_sparse_csr(&abc);
     free_sparse_csr(&def);
+    printf("freeing memory %d\n", 4);
     free_sparse_csr(&otemp);
+    printf("done %d\n", 4);
 }
 
 void csr_sum(const CSR A, const CSR B, CSR *sum) {
