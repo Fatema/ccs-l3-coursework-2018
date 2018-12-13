@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mail-user=fatema.alkhanaizi@durham.ac.uk
 #SBATCH --mail-type=ALL
-#SBATCH -p par6.q
+#SBATCH -p par7.q
 
 export INTEL_LICENSE_FILE=~/NCOM_L___S4ZD-KPHBLZSL.lic
 
