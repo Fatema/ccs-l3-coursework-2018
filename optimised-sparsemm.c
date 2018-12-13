@@ -523,6 +523,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
                     xb[k] = i;
                     x[k] = adata[jp] * bdata[kp];
                 } else {
+                    #pragma acc atomic update
                     x[k] += adata[jp] * bdata[kp];
                 }
             }
@@ -535,7 +536,6 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
             cdata = realloc(cdata, ibot * sizeof(double));
         }
 
-        #pragma acc parallel loop
         for (vp = ci[i]; vp < ip; vp++) {
             v = cj[vp];
             cdata[vp] = x[v];
