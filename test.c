@@ -10,12 +10,12 @@ int main(int argc, char **argv)
     // COO A, AT, B;
     COO A, C, B, AB;
     // CSR csr, csrt;
-    int m, k;
+    int m, k, j;
     int pass = 0;
     int x[10], y[10];
 
     #pragma acc parallel loop 
-    for (int j = 0; j < 10; j++) { 
+    for (j = 0; j < 10; j++) {
         x[j] = j; 
         y[j] = -j; 
     }
