@@ -8,6 +8,8 @@
 #SBATCH --mail-type=ALL
 #SBATCH -p par6.q
 
+export INTEL_LICENSE_FILE=~/NCOM_L___S4ZD-KPHBLZSL.lic
+
 source /etc/profile.d/modules.sh
 
 module load intel/xe_2018.2
