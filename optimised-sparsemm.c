@@ -528,8 +528,8 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
 
     ctemp->NZ = ip;
 
-    print_sparse_csr(ctemp);
-
     *c = ctemp;
+
+    print_sparse_csr(*c);
 //    printf("done %d\n", 3);
 }
