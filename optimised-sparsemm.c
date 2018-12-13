@@ -330,6 +330,8 @@ void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
     convert_coo_to_csr(acoo, &a);
     convert_coo_to_csr(bcoo, &b);
 
+    print_sparse_csr(a);
+
     printf("multiply %d\n", 2);
     csr_mm_multiply(a, b, &ctemp);
 
@@ -495,18 +497,18 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     printf("starting loop %d\n", 2);
     for (i = 0; i < p + 1; i++) {
         ctemp->I[i] = ip;
-        printf("ibot value %d\n", ibot);
-        printf("going through index %d\n", i);
+//        printf("ibot value %d\n", ibot);
+//        printf("going through index %d\n", i);
         for (jp = a->I[i]; jp < a->I[i + 1]; jp++) {
             j = a->J[jp];
-            printf("doing jp %d j %d\n", jp, j);
-            printf("doing bi limit %d\n", b->I[q]);
+//            printf("doing jp %d j %d\n", jp, j);
+//            printf("doing bi limit %d\n", b->I[q]);
             for (kp = b->I[j]; kp < b->I[j + 1]; kp++) {
-                printf("index kp %d\n", kp);
+//                printf("index kp %d\n", kp);
                 k = b->J[kp];
-                printf("index k %d\n", k);
+//                printf("index k %d\n", k);
                 if (xb[k] != i) {
-                    printf("going to multiply at ip=%d k=%d i=%d jp=%d kp=%d\n", ip, k, i, jp, kp);
+//                    printf("going to multiply at ip=%d k=%d i=%d jp=%d kp=%d\n", ip, k, i, jp, kp);
                     ctemp->J[ip] = k;
                     ip++;
                     xb[k] = i;
@@ -519,13 +521,13 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
 
         // to allow for a buffer of data
         if (ip >= ibot - p){
-            printf("reallocating memory %d\n", i);
+//            printf("reallocating memory %d\n", i);
             ibot += ibot;
             ctemp->J = realloc(ctemp->J, ibot * sizeof(int));
             ctemp->data = realloc(ctemp->data, ibot * sizeof(double));
         }
 
-        printf("putting values in array for index %d\n", i);
+//        printf("putting values in array for index %d\n", i);
         for (vp = ctemp->I[i]; vp < ip; vp++) {
             v = ctemp->J[vp];
             ctemp->data[vp] = x[v];
