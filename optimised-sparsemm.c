@@ -487,13 +487,13 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     ip = 0; // keeps track of value positions for matrix c
 
 //    #pragma acc parallel loop
-    for (v = 0; v < r; v++) {
+    for (v = 0; v < r + 1; v++) {
         xb[v] = -1;
         x[v] = -1;
     }
 
     printf("starting loop %d\n", 2);
-    for (i = 0; i < p; i++) {
+    for (i = 0; i < p + 1; i++) {
         ctemp->I[i] = ip;
 //        printf("ibot value %d\n", ibot);
         printf("going through index %d\n", i);
