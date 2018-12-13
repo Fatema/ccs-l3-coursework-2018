@@ -2,6 +2,7 @@
 #SBATCH --job-name="mmgw12-csr-lg-mm"
 #SBATCH -o mm-lg
 #SBATCH -e mm-lg.err
+#SBATCH -t 00:05:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mail-user=fatema.alkhanaizi@durham.ac.uk
