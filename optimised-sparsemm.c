@@ -513,17 +513,14 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
         ci[i] = ip;
         for (jp = ai[i]; jp < ai[i + 1]; jp++) {
             j = aj[jp];
-            #pragma acc parallel loop
             for (kp = bi[j]; kp < bi[j + 1]; kp++) {
                 k = bj[kp];
                 if (xb[k] != i) {
                     cj[ip] = k;
-                    #pragma acc atomic update
                     ip++;
                     xb[k] = i;
                     x[k] = adata[jp] * bdata[kp];
                 } else {
-                    #pragma acc atomic update
                     x[k] += adata[jp] * bdata[kp];
                 }
             }
