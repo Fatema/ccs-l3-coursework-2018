@@ -529,11 +529,13 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
 
         // to allow for a buffer of data
         if (ip >= ibot - p){
+            printf("reallocating memory %d\n", i);
             ibot += ibot;
             cj = realloc(cj, ibot * sizeof(int));
             cdata = realloc(cdata, ibot * sizeof(double));
         }
 
+        printf("putting values in array for index %d\n", i);
         for (vp = ci[i]; vp < ip; vp++) {
             v = cj[vp];
             cdata[vp] = x[v];
