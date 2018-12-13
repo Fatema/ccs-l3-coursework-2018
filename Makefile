@@ -31,20 +31,11 @@ check: sparsemm
 sparsemm: sparsemm.c $(OBJ)
 	$(ACC) -o $@ $< $(LDFLAGS) $(OBJ)
 
-# test: test.c $(OBJ)
-# 	$(CC) $(CFLAGS) -o $@ $< $(OBJ) $(LDFLAGS)
-
 test: test.c $(OBJ)
 	$(ACC) -o $@ $< $(LDFLAGS) $(OBJ)
 
 %.o: %.c $(HEADER)
 	$(ACC) -c -o $@ $<
-
-performance: sparsemm.c $(OBJ)
-	$(CC) $(CFLAGS) -o sparsemm $< $(OBJ) $(LDFLAGS) $(LIKWID)
-
-gprof: sparsemm.c $(OBJ)
-	$(CC) $(CFLAGS) -o sparsemm $< $(OBJ) $(LDFLAGS) $(GPROF)
 
 vecreport: sparsemm.c $(OBJ)
 	$(CC) $(VECREPORT) -o sparsemm $< $(OBJ) $(LDFLAGS)

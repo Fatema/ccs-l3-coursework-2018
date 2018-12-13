@@ -337,9 +337,9 @@ void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
     convert_csr_to_coo(ctemp, c);
 
 //    printf("freeing memory %d\n", 4);
-//    free_sparse_csr(&a);
+    free_sparse_csr(&a);
 //    printf("freeing memory %d\n", 4);
-//    free_sparse_csr(&b);
+    free_sparse_csr(&b);
 //    printf("freeing memory %d\n", 4);
 //    free_sparse_csr(&ctemp);
     printf("done %d\n", 4);
@@ -481,6 +481,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     // max value for ctemp size
     ibot = (anz + bnz) * 3;
 
+    printf("allocating memory %d\n", 2);
     alloc_sparse_csr(p, r, ibot, &ctemp);
 
     ip = 0; // keeps track of value positions for matrix c
@@ -507,8 +508,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     bdata = b->data;
     cdata = ctemp->data;
 
-
-
+    printf("starting loop %d\n", 2);
     for (i = 0; i < p + 1; i++) {
         ci[i] = ip;
         for (jp = ai[i]; jp < ai[i + 1]; jp++) {
@@ -538,6 +538,8 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
             cdata[vp] = x[v];
         }
     }
+
+    printf("done with loop %d\n", 2);
 
     ctemp->I = ci;
 
