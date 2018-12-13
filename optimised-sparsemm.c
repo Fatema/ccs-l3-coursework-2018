@@ -326,20 +326,23 @@ void csr_transpose(const CSR csr, CSR *transposed) {
 void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
     CSR a, b, ctemp;
 
-    printf("converting coo to csr %d", 1);
+    printf("converting coo to csr %d\n", 1);
     convert_coo_to_csr(acoo, &a);
     convert_coo_to_csr(bcoo, &b);
 
-    printf("multiply the matrices %d", 2);
+    printf("multiply the matrices %d\n", 2);
     csr_mm_multiply(a, b, &ctemp);
 
-    printf("converting csr to coo %d", 3);
+    printf("converting csr to coo %d\n", 3);
     convert_csr_to_coo(ctemp, c);
 
-    printf("freeing memory %d", 4);
+    printf("freeing memory %d\n", 4);
     free_sparse_csr(&a);
+    printf("freeing memory %d\n", 4);
     free_sparse_csr(&b);
+    printf("freeing memory %d\n", 4);
     free_sparse_csr(&ctemp);
+    printf("done %d\n", 5);
 }
 
 void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
@@ -478,7 +481,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     // max value for ctemp size
     ibot = (anz + bnz) * 3;
 
-    printf("allocating memory for ctemp %d %d %d", p, r, ibot);
+    printf("allocating memory for ctemp %d %d %d \n", p, r, ibot);
     alloc_sparse_csr(p, r, ibot, &ctemp);
 
     ip = 0; // keeps track of value positions for matrix c
