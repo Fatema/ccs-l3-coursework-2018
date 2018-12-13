@@ -511,6 +511,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     printf("starting loop %d\n", 2);
     for (i = 0; i < p + 1; i++) {
         ci[i] = ip;
+        printf("going through index %d\n", i);
         for (jp = ai[i]; jp < ai[i + 1]; jp++) {
             j = aj[jp];
             for (kp = bi[j]; kp < bi[j + 1]; kp++) {
