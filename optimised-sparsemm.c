@@ -337,9 +337,9 @@ void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
     convert_csr_to_coo(ccsr, c);
 
 //    printf("freeing memory %d\n", 4);
-//    free_sparse_csr(&a);
+    free_sparse_csr(&a);
 //    printf("freeing memory %d\n", 4);
-//    free_sparse_csr(&b);
+    free_sparse_csr(&b);
 //    printf("freeing memory %d\n", 4);
 //    free_sparse_csr(&ctemp);
     printf("done %d\n", 4);
@@ -543,5 +543,6 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     ctemp->NZ = ip;
 
     *c = ctemp;
+    ctemp = NULL;
 //    printf("done %d\n", 3);
 }
