@@ -481,7 +481,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     // max value for ctemp size
     ibot = (anz + bnz) * 3;
 
-    printf("allocating memory %d\n", 2);
+//    printf("allocating memory %d\n", 2);
     alloc_sparse_csr(p, r, ibot, &ctemp);
 
     ip = 0; // keeps track of value positions for matrix c
@@ -492,17 +492,17 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
         x[v] = -1;
     }
 
-    printf("starting loop %d\n", 2);
+//    printf("starting loop %d\n", 2);
     for (i = 0; i < p; i++) {
         ctemp->I[i] = ip;
 //        printf("ibot value %d\n", ibot);
-        printf("going through index %d p %d\n", i, p);
+//        printf("going through index %d p %d\n", i, p);
         for (jp = a->I[i]; jp < a->I[i + 1]; jp++) {
             j = a->J[jp];
-            printf("doing jp %d j %d\n", jp, j);
+//            printf("doing jp %d j %d\n", jp, j);
 //            printf("doing bi limit %d\n", b->I[q]);
             for (kp = b->I[j]; kp < b->I[j + 1]; kp++) {
-                printf("index kp %d\n", kp);
+//                printf("index kp %d\n", kp);
                 k = b->J[kp];
 //                printf("index k %d\n", k);
                 if (xb[k] != i) {
@@ -532,16 +532,16 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
         }
     }
 
-    printf("done with loop %d\n", 2);
+//    printf("done with loop %d\n", 2);
 
-    ctemp->I[p] = ip;
-    printf("realloc %d\n", 3);
+    ctemp->I[p + 1] = ip;
+//    printf("realloc %d\n", 3);
     ctemp->J = realloc(ctemp->J, ip * sizeof(int));
-    printf("realloc %d\n", 3);
+//    printf("realloc %d\n", 3);
     ctemp->data = realloc(ctemp->data, ip * sizeof(double));
 
     ctemp->NZ = ip;
 
     *c = ctemp;
-    printf("done %d\n", 3);
+//    printf("done %d\n", 3);
 }
