@@ -15,29 +15,17 @@ module load intel/xe_2018.2
 /ddn/apps/Cluster-Apps/intel/xe_2018.2/advisor_2018.2.0.551025/bin64/advixe-cl -collect survey -project-dir /ddn/home/mmgw12/mm_sum_lg/DG1 -- /ddn/home/mmgw12/ccs-l3-coursework-2018/sparsemm c_lg_sum_.matrix /ddn/home/mmgw12/matrices-lg/DG1-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG1-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG1-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG1-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG1-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG1-mass-3D.matrix
 /ddn/apps/Cluster-Apps/intel/xe_2018.2/advisor_2018.2.0.551025/bin64/advixe-cl -collect tripcounts -flop -project-dir /ddn/home/mmgw12/mm_sum_lg/DG1 -- /ddn/home/mmgw12/ccs-l3-coursework-2018/sparsemm c_lg_sum_.matrix /ddn/home/mmgw12/matrices-lg/DG1-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG1-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG1-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG1-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG1-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG1-mass-3D.matrix
 
-rm /ddn/home/mmgw12/mm_sum_lg/DG1/c_lg_sum_.matrix
-
 /ddn/apps/Cluster-Apps/intel/xe_2018.2/advisor_2018.2.0.551025/bin64/advixe-cl -collect survey -project-dir /ddn/home/mmgw12/mm_sum_lg/DG2 -- /ddn/home/mmgw12/ccs-l3-coursework-2018/sparsemm c_lg_sum_.matrix /ddn/home/mmgw12/matrices-lg/DG2-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG2-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG2-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG2-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG2-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG2-mass-3D.matrix
 /ddn/apps/Cluster-Apps/intel/xe_2018.2/advisor_2018.2.0.551025/bin64/advixe-cl -collect tripcounts -flop -project-dir /ddn/home/mmgw12/mm_sum_lg/DG2 -- /ddn/home/mmgw12/ccs-l3-coursework-2018/sparsemm c_lg_sum_.matrix /ddn/home/mmgw12/matrices-lg/DG2-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG2-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG2-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG2-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG2-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG2-mass-3D.matrix
-
-rm /ddn/home/mmgw12/mm_sum_lg/DG2/c_lg_sum_.matrix
 
 /ddn/apps/Cluster-Apps/intel/xe_2018.2/advisor_2018.2.0.551025/bin64/advixe-cl -collect survey -project-dir /ddn/home/mmgw12/mm_sum_lg/DG3 -- /ddn/home/mmgw12/ccs-l3-coursework-2018/sparsemm c_lg_sum_.matrix /ddn/home/mmgw12/matrices-lg/DG3-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG3-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG3-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG3-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG3-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG3-mass-3D.matrix
 /ddn/apps/Cluster-Apps/intel/xe_2018.2/advisor_2018.2.0.551025/bin64/advixe-cl -collect tripcounts -flop -project-dir /ddn/home/mmgw12/mm_sum_lg/DG3 -- /ddn/home/mmgw12/ccs-l3-coursework-2018/sparsemm c_lg_sum_.matrix /ddn/home/mmgw12/matrices-lg/DG3-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG3-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG3-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG3-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG3-mass-3D.matrix /ddn/home/mmgw12/matrices-lg/DG3-mass-3D.matrix
 
-rm /ddn/home/mmgw12/mm_sum_lg/DG3/c_lg_sum_.matrix
-
 /ddn/apps/Cluster-Apps/intel/xe_2018.2/advisor_2018.2.0.551025/bin64/advixe-cl -collect survey -project-dir /ddn/home/mmgw12/mm_lg/DG1 -- /ddn/home/mmgw12/ccs-l3-coursework-2018/sparsemm c_lg_.matrix /ddn/home/mmgw12/matrices-lg/DG1-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG1-mass-3D.matrix
 /ddn/apps/Cluster-Apps/intel/xe_2018.2/advisor_2018.2.0.551025/bin64/advixe-cl -collect tripcounts -flop -project-dir /ddn/home/mmgw12/mm_lg/DG1 -- /ddn/home/mmgw12/ccs-l3-coursework-2018/sparsemm c_lg_.matrix /ddn/home/mmgw12/matrices-lg/DG1-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG1-mass-3D.matrix
-
-rm /ddn/home/mmgw12/mm_lg/DG1/c_lg_.matrix
 
 /ddn/apps/Cluster-Apps/intel/xe_2018.2/advisor_2018.2.0.551025/bin64/advixe-cl -collect survey -project-dir /ddn/home/mmgw12/mm_lg/DG2 -- /ddn/home/mmgw12/ccs-l3-coursework-2018/sparsemm c_lg_.matrix /ddn/home/mmgw12/matrices-lg/DG2-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG2-mass-3D.matrix
 /ddn/apps/Cluster-Apps/intel/xe_2018.2/advisor_2018.2.0.551025/bin64/advixe-cl -collect tripcounts -flop -project-dir /ddn/home/mmgw12/mm_lg/DG2 -- /ddn/home/mmgw12/ccs-l3-coursework-2018/sparsemm c_lg_.matrix /ddn/home/mmgw12/matrices-lg/DG2-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG2-mass-3D.matrix
 
-rm /ddn/home/mmgw12/mm_lg/DG2/c_lg_.matrix
-
 /ddn/apps/Cluster-Apps/intel/xe_2018.2/advisor_2018.2.0.551025/bin64/advixe-cl -collect survey -project-dir /ddn/home/mmgw12/mm_lg/DG3 -- /ddn/home/mmgw12/ccs-l3-coursework-2018/sparsemm c_lg_.matrix /ddn/home/mmgw12/matrices-lg/DG3-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG3-mass-3D.matrix
 /ddn/apps/Cluster-Apps/intel/xe_2018.2/advisor_2018.2.0.551025/bin64/advixe-cl -collect tripcounts -flop -project-dir /ddn/home/mmgw12/mm_lg/DG3 -- /ddn/home/mmgw12/ccs-l3-coursework-2018/sparsemm c_lg_.matrix /ddn/home/mmgw12/matrices-lg/DG3-ip-laplace-3D.matrix /ddn/home/mmgw12/matrices-lg/DG3-mass-3D.matrix
-
-rm /ddn/home/mmgw12/mm_lg/DG3/c_lg_.matrix
