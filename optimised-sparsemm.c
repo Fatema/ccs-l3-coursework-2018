@@ -332,6 +332,7 @@ void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
 
     printf("multiply %d\n", 2);
     csr_mm_multiply(a, b, &ctemp);
+    print_sparse_csr(ctemp);
 
     printf("converting coo to csr %d\n", 3);
     convert_csr_to_coo(ctemp, c);

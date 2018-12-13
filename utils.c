@@ -199,7 +199,7 @@ void convert_dense_to_sparse(const double *dense, int m, int n,
  */
 void convert_csr_to_coo(const CSR csr, COO *coo) {
     printf("csr to coo %d \n", 1);
-    COO sp;
+    COO coosp;
     int m, NZ, i, n, r;
 
     m = csr->m;
@@ -207,18 +207,18 @@ void convert_csr_to_coo(const CSR csr, COO *coo) {
     NZ = csr->NZ;
 
     // column numbers is lost in this case
-    alloc_sparse(m, n, NZ, &sp);
+    alloc_sparse(m, n, NZ, &coosp);
 
     // cannot be vectorized
     for(i = 0; i < m; i++){
         for(r = csr->I[i]; r < csr->I[i + 1]; r++){
-            sp->coords[r].i = i;
-            sp->coords[r].j = csr->J[r];
-            sp->data[r] = csr->data[r];
+            coosp->coords[r].i = i;
+            coosp->coords[r].j = csr->J[r];
+            coosp->data[r] = csr->data[r];
         }
     }
 
-    *coo = sp;
+    *coo = coosp;
 }
 
 /** 
