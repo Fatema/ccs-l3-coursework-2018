@@ -330,8 +330,6 @@ void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
     convert_coo_to_csr(acoo, &a);
     convert_coo_to_csr(bcoo, &b);
 
-    print_sparse_csr(b);
-
     printf("multiply %d\n", 2);
     csr_mm_multiply(a, b, &ctemp);
 
@@ -488,7 +486,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
 
     ip = 0; // keeps track of value positions for matrix c
 
-    #pragma acc parallel loop
+//    #pragma acc parallel loop
     for (v = 0; v < r; v++) {
         xb[v] = -1;
         x[v] = -1;
@@ -501,10 +499,10 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
 //        printf("going through index %d\n", i);
         for (jp = a->I[i]; jp < a->I[i + 1]; jp++) {
             j = a->J[jp];
-//            printf("doing jp %d j %d\n", jp, j);
+            printf("doing jp %d j %d\n", jp, j);
 //            printf("doing bi limit %d\n", b->I[q]);
             for (kp = b->I[j]; kp < b->I[j + 1]; kp++) {
-//                printf("index kp %d\n", kp);
+                printf("index kp %d\n", kp);
                 k = b->J[kp];
 //                printf("index k %d\n", k);
                 if (xb[k] != i) {
