@@ -133,6 +133,7 @@ void coo_mm_multiply(const COO A, const COO B, COO *C) {
     BNZ = B->NZ;
 
     // bound to the multiplication matrixx https://www.degruyter.com/downloadpdf/j/comp.2014.4.issue-1/s13537-014-0201-x/s13537-014-0201-x.pdf
+    // this is bad for very big matrices as the multiplication results in reaching max int value and overflowing causing a memory issue
     alloc_sparse(A->m, B->n, ANZ * BNZ, &res);
 
     rcoord = res->coords;
@@ -281,66 +282,27 @@ void coo_sum_duplicates(const COO coo, COO *nodups) {
 // Algorithm to rezero Boolean array xb p11
 // multiplication algo p13
 
-void csr_transpose(const CSR csr, CSR *transposed) {
-    int i, j, ir, m, n, NZ, nir, jpt, jp, q;
-    CSR csrt;
-
-    m = csr->m; // in csr the number of rows is + 1
-    n = csr->n;
-    NZ = csr->NZ;
-
-    alloc_sparse_csr(n, m, NZ, &csrt);
-
-    // count the number of columns (rows for the transposed csr)
-    for (i = 0; i < NZ; i++) {
-        csrt->I[csr->J[i] + 1]++;
-    }
-
-    // set a pointer for the cumulative sum of the rows index
-    // this is used to shift the cumulative sum of the transposed row index
-    int p[n + 1];
-    q = 0;
-    for (i = 0; i < n + 1; i++) {
-        p[i] = q;
-        q += csrt->I[i];
-        csrt->I[i] = p[i];
-    }
-
-    for (i = 0; i < m + 1; i++) {
-        ir = csr->I[i];
-        nir = csr->I[i + 1];
-        for (jp = ir; jp < nir; jp++) {
-            j = csr->J[jp];
-            jpt = csrt->I[j + 1];
-            csrt->J[jpt] = i;
-            csrt->data[jpt] = csr->data[jp];
-            csrt->I[j + 1] = jpt + 1;
-        }
-    }
-
-    csrt->I[0] = 0;
-
-    *transposed = csrt;
-}
-
+/**
+ * perform the multiplication in CSR format and return the result in COO format
+ * @param acoo
+ * @param bcoo
+ * @param c
+ */
 void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
     CSR a, b, ctemp;
 
-    printf("converting coo to csr %d\n", 1);
+    // convert matrices to CSR format
     convert_coo_to_csr(acoo, &a);
     convert_coo_to_csr(bcoo, &b);
 
-    printf("multiply the matrices %d\n", 2);
     csr_mm_multiply(a, b, &ctemp);
 
-    printf("converting csr to coo %d\n", 3);
+    // convert result back to COO format
     convert_csr_to_coo(ctemp, c);
 
-    printf("freeing memory %d\n", 4);
     free_sparse_csr(&a);
-    printf("freeing memory %d\n", 4);
     free_sparse_csr(&b);
-    printf("freeing memory %d\n", 4);
+    // for some reason a memory error occurs when the last temporary matrix is freed
 //    free_sparse_csr(&ctemp);
 }
 
@@ -353,7 +315,6 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     CSR otemp, abc, def; // temporary matrix to hold o data and the sum results
 
     // convert the matrices to csr format (rows will be sorted after the conversion)
-    printf("converting coo to csr %d\n", 1);
     convert_coo_to_csr(A, &acsr);
     convert_coo_to_csr(B, &bcsr);
     convert_coo_to_csr(C, &ccsr);
@@ -363,8 +324,6 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
 
     // the sum depends on the matrices being fully sorted so use transpose to sort the columns
     // transposing won't affect the result of the sum
-    // (it could affect the parallelisation of the sum process)
-    printf("transposing %d\n", 1);
     csr_transpose(acsr, &acsr);
     csr_transpose(bcsr, &bcsr);
     csr_transpose(ccsr, &ccsr);
@@ -372,7 +331,6 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     csr_transpose(ecsr, &ecsr);
     csr_transpose(fcsr, &fcsr);
 
-    printf("sum coo to csr %d\n", 1);
     csr_sum(acsr, bcsr, &abc);
     csr_sum(abc, ccsr, &abc);
 
@@ -380,29 +338,23 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
     csr_sum(def, fcsr, &def);
 
     // transpose the sums to be rows oriented
-    printf("transposing %d\n", 1);
     csr_transpose(abc, &abc);
     csr_transpose(def, &def);
 
-    printf("multiply the matrices %d\n", 2);
     csr_mm_multiply(abc, def, &otemp);
 
     convert_csr_to_coo(otemp, O);
 
-    printf("freeing memory %d\n", 4);
     free_sparse_csr(&acsr);
     free_sparse_csr(&bcsr);
     free_sparse_csr(&ccsr);
-    printf("freeing memory %d\n", 4);
     free_sparse_csr(&dcsr);
     free_sparse_csr(&ecsr);
     free_sparse_csr(&fcsr);
-    printf("freeing memory %d\n", 4);
     free_sparse_csr(&abc);
     free_sparse_csr(&def);
-    printf("freeing memory %d\n", 4);
+    // for some reason a memory error occurs when the last temporary matrix is freed
 //    free_sparse_csr(&otemp);
-    printf("done %d\n", 4);
 }
 
 void csr_sum(const CSR A, const CSR B, CSR *sum) {
@@ -495,6 +447,7 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     ip = 0; // keeps track of value positions for matrix c
 
 //    #pragma acc parallel loop
+#pragma ivdep
     for (v = 0; v < r + 1; v++) {
         xb[v] = -1;
         x[v] = -1;
@@ -523,6 +476,8 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
             ctemp->data = realloc(ctemp->data, ibot * sizeof(double));
         }
 
+        // based on intel advisor this loop was vectorized by AVX2
+        // however this result is obtained from running it on hamilton local node
         for (vp = ctemp->I[i]; vp < ip; vp++) {
             v = ctemp->J[vp];
             ctemp->data[vp] = x[v];
@@ -537,4 +492,46 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     ctemp->NZ = ip;
 
     *c = ctemp;
+}
+
+void csr_transpose(const CSR csr, CSR *transposed) {
+    int i, j, ir, m, n, NZ, nir, jpt, jp, q;
+    CSR csrt;
+
+    m = csr->m; // in csr the number of rows is + 1
+    n = csr->n;
+    NZ = csr->NZ;
+
+    alloc_sparse_csr(n, m, NZ, &csrt);
+
+    // count the number of columns (rows for the transposed csr)
+    for (i = 0; i < NZ; i++) {
+        csrt->I[csr->J[i] + 1]++;
+    }
+
+    // set a pointer for the cumulative sum of the rows index
+    // this is used to shift the cumulative sum of the transposed row index
+    int p[n + 1];
+    q = 0;
+    for (i = 0; i < n + 1; i++) {
+        p[i] = q;
+        q += csrt->I[i];
+        csrt->I[i] = p[i];
+    }
+
+    for (i = 0; i < m + 1; i++) {
+        ir = csr->I[i];
+        nir = csr->I[i + 1];
+        for (jp = ir; jp < nir; jp++) {
+            j = csr->J[jp];
+            jpt = csrt->I[j + 1];
+            csrt->J[jpt] = i;
+            csrt->data[jpt] = csr->data[jp];
+            csrt->I[j + 1] = jpt + 1;
+        }
+    }
+
+    csrt->I[0] = 0;
+
+    *transposed = csrt;
 }
