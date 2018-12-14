@@ -1,9 +1,0 @@
-cmake_minimum_required(VERSION 3.6)
-project(ccs-l3-coursework-2018)
-
-set(CMAKE_C_STANDARD 99)
-
-set(SOURCE_FILES sparsemm.c optimised-sparsemm.c basic-sparsemm.c utils.c)
-set(SOURCE_ARGS "CHECK")
-
-add_executable(ccs-l3-coursework-2018 ${SOURCE_FILES})

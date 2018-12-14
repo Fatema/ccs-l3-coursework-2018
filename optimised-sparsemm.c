@@ -9,13 +9,11 @@ void csr_transpose(const CSR csr, CSR *transposed);
 
 void coo2csr_mm_multiply(const COO a, const COO b, COO *c);
 
-void csr_mm_multiply_acc(const COO a, const COO b, COO *c);
-
-void coo_mm_multiply(const COO a, const COO b, COO *c);
+void coo_mm_multiply(const COO A, const COO B, COO *C);
 
 void csr_mm_multiply(const CSR a, const CSR b, CSR *c);
 
-void coo_mm_multiply_acc(const COO a, const COO b, COO *c);
+void coo_mm_multiply_acc(const COO A, const COO B, COO *C);
 
 void csr_sum(const CSR A, const CSR B, CSR *sum);
 
@@ -31,7 +29,6 @@ void basic_sparsemm_sum(const COO, const COO, const COO,
 
 /* Computes C = A*B.
  * C should be allocated by this routine.
- * this is based on https://www.geeksforgeeks.org/operations-sparse-matrices/ 
  */
 void optimised_sparsemm(const COO A, const COO B, COO *C) {
     return coo2csr_mm_multiply(A, B, C);
@@ -46,7 +43,86 @@ void optimised_sparsemm_sum(const COO A, const COO B, const COO C,
     return coo2csr_mm_multiply_sum(A, B, C, D, E, F, O);
 }
 
+/**
+ * Multiply matrices in COO format based on the work of Sudarshan Khasnis from https://www.geeksforgeeks.org/operations-sparse-matrices/
+ * @param A - input matrix
+ * @param B - input matrix
+ * @param C - output matrix
+ */
+void coo_mm_multiply(const COO A, const COO B, COO *C) {
+    COO res, Tres;
+    int apos, bpos, cpos,
+            ANZ, BNZ, arow, acol, brow, bcol;
+    double adata, bdata;
 
+    // for faster access to the arrays
+    struct coord *acoord, *bcoord, *rcoord;
+    double *adataarr, *bdataarr, *rdataarr;
+
+    acoord = A->coords;
+    bcoord = B->coords;
+
+    adataarr = A->data;
+    bdataarr = B->data;
+
+    ANZ = A->NZ;
+    BNZ = B->NZ;
+
+    // bound to the multiplication matrixx https://www.degruyter.com/downloadpdf/j/comp.2014.4.issue-1/s13537-014-0201-x/s13537-014-0201-x.pdf
+    // this is bad for very big matrices as the multiplication results in reaching max int value and overflowing causing a memory issue
+    alloc_sparse(A->m, B->n, ANZ * BNZ, &res);
+
+    rcoord = res->coords;
+    rdataarr = res->data;
+
+    cpos = -1;
+
+    // go over A none zero value
+    for (apos = 0; apos < ANZ; apos++) {
+        arow = acoord[apos].i;
+        acol = acoord[apos].j;
+        adata = adataarr[apos];
+        // go over B none zero value
+        for (bpos = 0; bpos < BNZ; bpos++) {
+            brow = bcoord[bpos].j; // swap col and row of B
+            bcol = bcoord[bpos].i; // swap col and row of B
+            bdata = bdataarr[bpos];
+            // if the column of A is the sam as the row of B then continue
+            if (acol == bcol) {
+                // this is slowing down the parallization
+                cpos++; // I can use this to keep track if I'm about to run out of allocated memory
+                rcoord[cpos].i = arow;
+                rcoord[cpos].j = brow;
+                // each entry will be in different index so multiple entires can be made for row,col pair
+                rdataarr[cpos] = adata * bdata;
+            }
+        }
+    }
+
+    cpos++;
+
+    // reallocate the memory so it fits with the actual size of the multiplication result
+    res->NZ = cpos;
+    res->coords = realloc(rcoord, cpos * sizeof(struct coord));
+    res->data = realloc(rdataarr, cpos * sizeof(double));
+
+    // sort the resulted matrix
+    transpose_coo_acc(res, &Tres);
+    transpose_coo_acc(Tres, &res);
+
+    // sum duplicated entries for row,col pair
+    coo_sum_duplicates(res, C);
+
+    free_sparse(&res);
+    free_sparse(&Tres);
+}
+
+/**
+ * matrix multiplication using COO format - same code but with pragma tags
+ * @param A
+ * @param B
+ * @param C
+ */
 void coo_mm_multiply_acc(const COO A, const COO B, COO *C) {
     COO res, Tres;
     int apos, bpos, cpos,
@@ -66,6 +142,7 @@ void coo_mm_multiply_acc(const COO A, const COO B, COO *C) {
     BNZ = B->NZ;
 
     // bound to the multiplication matrixx https://www.degruyter.com/downloadpdf/j/comp.2014.4.issue-1/s13537-014-0201-x/s13537-014-0201-x.pdf
+    // not ideal to be allocated at once
     alloc_sparse(A->m, B->n, ANZ * BNZ, &res);
 
     rcoord = res->coords;
@@ -73,7 +150,6 @@ void coo_mm_multiply_acc(const COO A, const COO B, COO *C) {
 
     cpos = -1;
 
-    // with this approach sorting A and B is not really necessary, neither is transposing B
 #pragma acc data copyin(acoord[0:ANZ], bcoord[0:BNZ], adataarr[0:ANZ], bdataarr[0:BNZ]), copyout(rcoord[0:ANZ * BNZ], rdataarr[0:ANZ * BNZ])
 #pragma acc parallel loop
     for (apos = 0; apos < ANZ; apos++) {
@@ -85,9 +161,8 @@ void coo_mm_multiply_acc(const COO A, const COO B, COO *C) {
             brow = bcoord[bpos].j;
             bcol = bcoord[bpos].i;
             bdata = bdataarr[bpos];
-            // transpose is not really needed for this case
             if (acol == bcol) {
-                // this is slowing down the parallization
+                // this is slowing down the parallelization
 #pragma acc atomic update
                 cpos++; // I can use this to keep track if I'm about to run out of allocated memory
                 rcoord[cpos].i = arow;
@@ -113,70 +188,6 @@ void coo_mm_multiply_acc(const COO A, const COO B, COO *C) {
     free_sparse(&res);
     free_sparse(&Tres);
 }
-
-void coo_mm_multiply(const COO A, const COO B, COO *C) {
-    COO res, Tres;
-    int apos, bpos, cpos,
-            ANZ, BNZ, arow, acol, brow, bcol;
-    double adata, bdata;
-
-    struct coord *acoord, *bcoord, *rcoord;
-    double *adataarr, *bdataarr, *rdataarr;
-
-    acoord = A->coords;
-    bcoord = B->coords;
-
-    adataarr = A->data;
-    bdataarr = B->data;
-
-    ANZ = A->NZ;
-    BNZ = B->NZ;
-
-    // bound to the multiplication matrixx https://www.degruyter.com/downloadpdf/j/comp.2014.4.issue-1/s13537-014-0201-x/s13537-014-0201-x.pdf
-    // this is bad for very big matrices as the multiplication results in reaching max int value and overflowing causing a memory issue
-    alloc_sparse(A->m, B->n, ANZ * BNZ, &res);
-
-    rcoord = res->coords;
-    rdataarr = res->data;
-
-    cpos = -1;
-
-    for (apos = 0; apos < ANZ; apos++) {
-        arow = acoord[apos].i;
-        acol = acoord[apos].j;
-        adata = adataarr[apos];
-        for (bpos = 0; bpos < BNZ; bpos++) {
-            brow = bcoord[bpos].j;
-            bcol = bcoord[bpos].i;
-            bdata = bdataarr[bpos];
-            // transpose is not really needed for this case
-            if (acol == bcol) {
-                // this is slowing down the parallization
-                cpos++; // I can use this to keep track if I'm about to run out of allocated memory
-                rcoord[cpos].i = arow;
-                rcoord[cpos].j = brow;
-                rdataarr[cpos] = adata * bdata;
-            }
-        }
-    }
-
-    cpos++;
-
-    res->NZ = cpos;
-    res->coords = realloc(rcoord, cpos * sizeof(struct coord));
-    res->data = realloc(rdataarr, cpos * sizeof(double));
-
-    // the removing of duplicates can be done in merge sort style
-    // sort the result
-    transpose_coo_acc(res, &Tres);
-    transpose_coo_acc(Tres, &res);
-
-    coo_sum_duplicates(res, C);
-
-    free_sparse(&res);
-    free_sparse(&Tres);
-}
-
 
 /*
  * Transpose a coo format sparse matrix
@@ -246,14 +257,22 @@ void transpose_coo_acc(const COO coo, COO *transposed) {
     *transposed = sp;
 }
 
+/**
+ * Sum duplicates entries for row and column pair
+ * @param coo - must be sorted row and column wise
+ * @param nodups - output matrix without duplicated entries
+ */
 void coo_sum_duplicates(const COO coo, COO *nodups) {
     COO sp;
     int NZ = coo->NZ;
     int i;
 
+    // create a new matrix for final output
     alloc_sparse(coo->m, coo->n, NZ, &sp);
 
+    // used as a pointer to keep track of the current position in the new matrix arrays
     int nnz = 0;
+    // set initial value to the first entry from the coo matrix
     sp->coords[0] = coo->coords[0];
     sp->data[0] = coo->data[0];
 
@@ -267,7 +286,7 @@ void coo_sum_duplicates(const COO coo, COO *nodups) {
         }
     }
 
-    // since nnz start at zero at the end it must be incremented by 1 to get the actual size
+    // since nnz starts at zero at the end it must be incremented by 1 to get the actual size
     nnz++;
 
     sp->NZ = nnz;
@@ -277,10 +296,10 @@ void coo_sum_duplicates(const COO coo, COO *nodups) {
     *nodups = sp;
 }
 
-// http://delivery.acm.org/10.1145/360000/355796/p250-gustavson.pdf?ip=129.234.0.23&id=355796&acc=ACTIVE%20SERVICE&key=BF07A2EE685417C5%2EAB9A2A9F43EF7438%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35&__acm__=1544294337_058d03490eaa8bf2d29373ed515d88b5 
-// transpose algo for CSR p8
-// Algorithm to rezero Boolean array xb p11
-// multiplication algo p13
+/**
+ * The following functions are based on the work of Gustavson, link below
+ * http://delivery.acm.org/10.1145/360000/355796/p250-gustavson.pdf?ip=129.234.0.23&id=355796&acc=ACTIVE%20SERVICE&key=BF07A2EE685417C5%2EAB9A2A9F43EF7438%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35&__acm__=1544294337_058d03490eaa8bf2d29373ed515d88b5
+ */
 
 /**
  * perform the multiplication in CSR format and return the result in COO format
@@ -306,13 +325,23 @@ void coo2csr_mm_multiply(const COO acoo, const COO bcoo, COO *c) {
 //    free_sparse_csr(&ctemp);
 }
 
+/**
+ * computes O = (A + B + C)(D + E + F) in CSR format then converts it to COO
+ * @param A
+ * @param B
+ * @param C
+ * @param D
+ * @param E
+ * @param F
+ * @param O
+ */
 void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
                              const COO D, const COO E, const COO F,
                              COO *O) {
 
     CSR acsr, bcsr, ccsr, dcsr, ecsr, fcsr;
 
-    CSR otemp, abc, def; // temporary matrix to hold o data and the sum results
+    CSR otemp, abc, def; // temporary matrix to hold O data and the sum results
 
     // convert the matrices to csr format (rows will be sorted after the conversion)
     convert_coo_to_csr(A, &acsr);
@@ -357,6 +386,12 @@ void coo2csr_mm_multiply_sum(const COO A, const COO B, const COO C,
 //    free_sparse_csr(&otemp);
 }
 
+/**
+ * computes A + B for CSR format
+ * @param A - input sorted
+ * @param B - input sorted
+ * @param sum - output matrix
+ */
 void csr_sum(const CSR A, const CSR B, CSR *sum) {
     CSR temp;
 
@@ -365,16 +400,22 @@ void csr_sum(const CSR A, const CSR B, CSR *sum) {
     m = A->m;
     n = A->n;
 
+    // set a new emoty matrix, max size is the number of non zero elements from both matrices
     alloc_sparse_csr(m, n, A->NZ + B->NZ, &temp);
 
+    // used as a pointer for the position in the new arrays for result matrix
     ncol = 0;
+
+    // both matrices have the same number of rows and columns - iterate over each row
     for (i = 0; i < m; i++) {
+        // determine the number of columns with this row
         ai = A->I[i];
         nai = A->I[i + 1];
 
         bi = B->I[i];
         nbi = B->I[i + 1];
 
+        // add elements from A and B until all entries of one matrix has been iterated for the given row
         while (ai < nai && bi < nbi) {
             if (A->J[ai] < B->J[bi]) {
                 temp->J[ncol] = A->J[ai];
@@ -420,6 +461,12 @@ void csr_sum(const CSR A, const CSR B, CSR *sum) {
     *sum = temp;
 }
 
+/**
+ * compute c = a * b in CSR format
+ * @param a
+ * @param b
+ * @param c
+ */
 void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     CSR ctemp; // temporary matrix to hold c data
 
@@ -438,33 +485,38 @@ void csr_mm_multiply(const CSR a, const CSR b, CSR *c) {
     anz = a->NZ;
     bnz = b->NZ;
 
-    // max value for ctemp size
+    // intial max value for ctemp size
     ibot = (anz + bnz) * 3;
 
-    printf("allocating memory for ctemp %d %d %d \n", p, r, ibot);
     alloc_sparse_csr(p, r, ibot, &ctemp);
 
     ip = 0; // keeps track of value positions for matrix c
 
-//    #pragma acc parallel loop
-#pragma ivdep
+//  #pragma acc parallel loop
+    #pragma ivdep
     for (v = 0; v < r + 1; v++) {
         xb[v] = -1;
         x[v] = -1;
     }
 
+    // for eahc row for c matrix
     for (i = 0; i < p; i++) {
         ctemp->I[i] = ip;
+        // go over the rows of a
         for (jp = a->I[i]; jp < a->I[i + 1]; jp++) {
-            j = a->J[jp];
+            j = a->J[jp]; // retrieve the column value for a and use it to get the row for b
+//          #pragma acc parallel loop
             for (kp = b->I[j]; kp < b->I[j + 1]; kp++) {
+                // retrieve the column value for b
                 k = b->J[kp];
                 if (xb[k] != i) {
                     ctemp->J[ip] = k;
+//                  #pragma acc atomic update
                     ip++;
                     xb[k] = i;
                     x[k] = a->data[jp] * b->data[kp];
                 } else {
+//                  #pragma acc atomic update
                     x[k] += a->data[jp] * b->data[kp];
                 }
             }
